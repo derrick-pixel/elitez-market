@@ -44,7 +44,7 @@ st.set_page_config(
 )
 
 MAROON = "#9B1B30"
-GREY = "#94a3b8"
+GREY = "#53565A"
 
 # ---------------------------------------------------------------------------
 # Custom CSS
@@ -52,20 +52,23 @@ GREY = "#94a3b8"
 st.markdown(f"""
 <style>
     .main-header {{
-        font-size: 2rem;
+        font-size: 1.6rem;
         font-weight: 700;
         color: {MAROON};
-        margin-bottom: 0.2rem;
+        margin-bottom: 0.1rem;
+        letter-spacing: 1px;
     }}
     .sub-header {{
-        font-size: 1rem;
+        font-size: 0.8rem;
         color: {GREY};
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.2rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
     }}
     .metric-card {{
         background: #ffffff;
-        border-left: 4px solid {MAROON};
-        border-radius: 8px;
+        border-left: 3px solid {MAROON};
+        border-radius: 3px;
         padding: 1rem 1.2rem;
         margin-bottom: 0.8rem;
         box-shadow: 0 1px 3px rgba(0,0,0,0.08);
@@ -84,11 +87,10 @@ st.markdown(f"""
     }}
     .booth-card {{
         background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 3px;
         padding: 1.2rem 1.5rem;
         margin-bottom: 1rem;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     }}
     .booth-card h3 {{
         color: {MAROON};
@@ -101,8 +103,9 @@ st.markdown(f"""
         border-collapse: collapse;
     }}
     .booth-card table td {{
-        padding: 0.35rem 0.5rem;
+        padding: 0.25rem 0.5rem;
         border-bottom: 1px solid #f1f5f9;
+        font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
     }}
     .booth-card table td:first-child {{
         color: {GREY};
@@ -113,18 +116,19 @@ st.markdown(f"""
         font-weight: 600;
     }}
     .ai-narrative {{
-        background: linear-gradient(135deg, #fdf2f4 0%, #fff 100%);
-        border-left: 4px solid {MAROON};
-        border-radius: 8px;
+        background: #fafafa;
+        border-left: 3px solid {MAROON};
+        border-top: 2px solid {MAROON};
+        border-radius: 0px;
         padding: 1.2rem 1.5rem;
         margin: 1rem 0;
         line-height: 1.7;
     }}
     .company-header {{
-        background: linear-gradient(135deg, {MAROON} 0%, #7d1526 100%);
+        background: {MAROON};
         color: white;
         padding: 1.5rem 2rem;
-        border-radius: 12px;
+        border-radius: 4px;
         margin-bottom: 1.5rem;
     }}
     .company-header h1 {{
@@ -144,17 +148,17 @@ st.markdown(f"""
         background: {MAROON};
         color: white;
         padding: 0.5rem 1rem;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         font-weight: 600;
-        letter-spacing: 2px;
+        letter-spacing: 3px;
         text-transform: uppercase;
-        border-radius: 4px;
+        border-radius: 2px;
         margin: 1.5rem 0 1rem 0;
     }}
     .card-title {{
         text-transform: uppercase;
-        letter-spacing: 1.5px;
-        font-size: 0.75rem;
+        letter-spacing: 2.5px;
+        font-size: 0.7rem;
         color: {MAROON};
         font-weight: 600;
         margin-bottom: 0.5rem;
@@ -162,38 +166,29 @@ st.markdown(f"""
         border-bottom: 1px solid #e2e8f0;
     }}
     .signal-pos {{
-        background: #f0fdf4;
         border-left: 3px solid #16a34a;
-        padding: 0.4rem 0.7rem;
-        border-radius: 0 4px 4px 0;
-        font-size: 0.78rem;
-        margin-top: 0.5rem;
-        color: #16a34a;
-        font-weight: 600;
+        padding: 0.25rem 0.6rem;
+        margin-top: 0.4rem;
+        border-radius: 0;
+        background: none;
     }}
     .signal-neg {{
-        background: #fef2f2;
         border-left: 3px solid #dc2626;
-        padding: 0.4rem 0.7rem;
-        border-radius: 0 4px 4px 0;
-        font-size: 0.78rem;
-        margin-top: 0.5rem;
-        color: #dc2626;
-        font-weight: 600;
+        padding: 0.25rem 0.6rem;
+        margin-top: 0.4rem;
+        border-radius: 0;
+        background: none;
     }}
     .signal-warn {{
-        background: #fffbeb;
         border-left: 3px solid #d97706;
-        padding: 0.4rem 0.7rem;
-        border-radius: 0 4px 4px 0;
-        font-size: 0.78rem;
-        margin-top: 0.5rem;
-        color: #d97706;
-        font-weight: 600;
+        padding: 0.25rem 0.6rem;
+        margin-top: 0.4rem;
+        border-radius: 0;
+        background: none;
     }}
     .card-note {{
-        font-size: 0.7rem;
-        color: #94a3b8;
+        font-size: 0.65rem;
+        color: #6b7280;
         line-height: 1.4;
         margin-top: 0.5rem;
     }}
@@ -209,7 +204,7 @@ st.markdown(f"""
     .exec-box {{
         background: #ffffff;
         border: 1px solid #e2e8f0;
-        border-radius: 10px;
+        border-radius: 2px;
         padding: 1rem 1.2rem;
         text-align: center;
         box-shadow: 0 1px 4px rgba(0,0,0,0.06);
@@ -220,7 +215,7 @@ st.markdown(f"""
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 1.5px;
-        color: #94a3b8;
+        color: #53565A;
         margin-bottom: 0.3rem;
     }}
     .exec-box .exec-value {{
@@ -230,7 +225,7 @@ st.markdown(f"""
     }}
     .exec-box .exec-sub {{
         font-size: 0.75rem;
-        color: #94a3b8;
+        color: #53565A;
         margin-top: 0.15rem;
     }}
     .ai-header {{
@@ -246,10 +241,10 @@ st.markdown(f"""
         margin-bottom: 0;
     }}
     .ai-body {{
-        background: linear-gradient(135deg, #fdf2f4 0%, #fff 100%);
+        background: #fafafa;
         border: 1px solid #e2e8f0;
         border-top: none;
-        border-radius: 0 0 8px 8px;
+        border-radius: 0 0 2px 2px;
         padding: 1.2rem 1.5rem;
         margin-bottom: 1rem;
         line-height: 1.7;
@@ -259,12 +254,12 @@ st.markdown(f"""
         border-collapse: collapse;
     }}
     .data-table td {{
-        padding: 0.35rem 0.5rem;
+        padding: 0.25rem 0.5rem;
         border-bottom: 1px solid #f1f5f9;
         font-size: 0.85rem;
     }}
     .data-table td:first-child {{
-        color: #94a3b8;
+        color: #53565A;
         font-weight: 500;
     }}
     .data-table td:last-child {{
@@ -272,6 +267,9 @@ st.markdown(f"""
         font-weight: 600;
         color: #1e293b;
         font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    }}
+    .mono-val {{
+        font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
     }}
 </style>
 """, unsafe_allow_html=True)
@@ -527,30 +525,15 @@ def _render_card(title, rows, signal=None, note=None):
         stype, stext = signal
         # Normalise type names
         if stype in ("pos", "positive"):
-            signal_html = (
-                f'<div style="background:#f0fdf4; border-left:3px solid #16a34a; '
-                f'padding:0.3rem 0.6rem; margin-top:0.5rem; border-radius:0 4px 4px 0;">'
-                f'<span style="color:#16a34a; font-weight:600;">\u25b2 {stext}</span></div>'
-            )
+            signal_html = f'<div style="border-left:3px solid #16a34a; padding:0.25rem 0.6rem; margin-top:0.4rem;"><span style="color:#16a34a; font-size:0.75rem; font-weight:600;">\u25b2 {stext}</span></div>'
         elif stype in ("neg", "negative"):
-            signal_html = (
-                f'<div style="background:#fef2f2; border-left:3px solid #dc2626; '
-                f'padding:0.3rem 0.6rem; margin-top:0.5rem; border-radius:0 4px 4px 0;">'
-                f'<span style="color:#dc2626; font-weight:600;">\u25bc {stext}</span></div>'
-            )
+            signal_html = f'<div style="border-left:3px solid #dc2626; padding:0.25rem 0.6rem; margin-top:0.4rem;"><span style="color:#dc2626; font-size:0.75rem; font-weight:600;">\u25bc {stext}</span></div>'
         elif stype in ("warn", "amber"):
-            signal_html = (
-                f'<div style="background:#fffbeb; border-left:3px solid #d97706; '
-                f'padding:0.3rem 0.6rem; margin-top:0.5rem; border-radius:0 4px 4px 0;">'
-                f'<span style="color:#d97706; font-weight:600;">\u25b3 {stext}</span></div>'
-            )
+            signal_html = f'<div style="border-left:3px solid #d97706; padding:0.25rem 0.6rem; margin-top:0.4rem;"><span style="color:#d97706; font-size:0.75rem; font-weight:600;">\u25b3 {stext}</span></div>'
 
     note_html = ""
     if note:
-        note_html = (
-            f'<div style="font-size:0.7rem; color:#94a3b8; line-height:1.4; '
-            f'margin-top:0.5rem; font-style:italic;">{note}</div>'
-        )
+        note_html = f'<div style="font-size:0.65rem; color:#6b7280; line-height:1.4; margin-top:0.4rem;">{note}</div>'
 
     html = (
         f'<div class="booth-card">'
@@ -648,7 +631,7 @@ def _render_executive_summary(booth, fs):
         if z >= 2.99:
             z_color = "#16a34a"
         elif z >= 1.81:
-            z_color = "#94a3b8"
+            z_color = "#53565A"
         else:
             z_color = "#dc2626"
         z_val = f'<span style="color:{z_color}">{z:.2f}</span>'
@@ -967,7 +950,7 @@ def _render_fs_column(fs, info=None):
             grade_color = "#16a34a" if score >= 4 else "#d97706"
         else:
             grade = ""
-            grade_color = "#94a3b8"
+            grade_color = "#53565A"
 
         rating_html = (
             f'<div style="text-align:center;margin:0.5rem 0;">'
@@ -1096,7 +1079,7 @@ def _render_fs_column(fs, info=None):
             sig = ("pos", f"Z = {z:.2f} — Safe zone, low bankruptcy risk")
             badge_bg = "#16a34a"
         elif z >= 1.81:
-            z_color = "#94a3b8"
+            z_color = "#53565A"
             sig = ("warn", f"Z = {z:.2f} — Grey zone, moderate risk")
             badge_bg = "#d97706"
         else:
@@ -1377,7 +1360,7 @@ def _render_cs_section(cs, om=None):
             risk_big = (
                 f'<div style="text-align:center;margin:0.5rem 0;">'
                 f'<span style="font-size:1.8rem;font-weight:800;color:{r_color}">{risk_level}</span>'
-                f'<br><span style="font-size:0.8rem;color:#94a3b8">{risk_score}/10</span></div>'
+                f'<br><span style="font-size:0.8rem;color:#53565A">{risk_score}/10</span></div>'
             )
 
             _render_card(
@@ -1409,7 +1392,7 @@ def _render_cs_section(cs, om=None):
                 p_color = "#d97706"
                 sig = ("warn", f"{position} — competitive but not dominant")
             else:
-                p_color = "#94a3b8"
+                p_color = "#53565A"
                 sig = ("warn", f"{position}")
 
             pos_badge = (
@@ -1660,7 +1643,7 @@ with st.sidebar:
     st.markdown(f"""
     <div style="text-align:center; padding:1rem 0;">
         <div style="font-size:1.3rem; font-weight:700; color:{MAROON};">Elitez Asia's Analytics</div>
-        <div style="font-size:0.8rem; color:{GREY};">Powered by CB Research Framework</div>
+        <div style="font-size:0.75rem; color:{GREY}; letter-spacing:2px; text-transform:uppercase;">CB Research Framework</div>
     </div>
     """, unsafe_allow_html=True)
 

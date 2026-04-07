@@ -10,7 +10,7 @@ PDF Report generation using WeasyPrint.
   Page 8: Competitive Strategy
   Page 9: Disclaimers
 
-Color theme: ChicagoBooth Maroon (#9B1B30) and Grey (#94a3b8).
+Color theme: ChicagoBooth Maroon (#9B1B30) and Grey (#53565A, Pantone Cool Gray 11C).
 Branding: Elitez Asia's Analytics, Powered by CB Research Framework.
 
 WeasyPrint constraints: NO flexbox flex:1/flex:2 — use <table> with percentage
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 MAROON = "#9B1B30"
 MAROON_LIGHT = "#fdf2f4"
-GREY = "#94a3b8"
+GREY = "#53565A"
 DARK_TEXT = "#1e293b"
 BORDER_COLOR = "#e2e8f0"
 GREEN = "#16a34a"
@@ -116,24 +116,18 @@ def _pct_safe(val, multiplier=100):
 
 
 def _signal(positive: bool, text: str) -> str:
-    """Return a signal indicator box with triangle and text."""
-    if positive:
-        return (f'<div style="display:inline-block; background:{GREEN_BG}; border:1px solid {GREEN}; '
-                f'border-radius:4px; padding:2pt 8pt; margin-top:4pt;">'
-                f'<span style="color:{GREEN}; font-weight:700;">&#9650;</span> '
-                f'<span style="color:{GREEN}; font-size:8.5pt; font-weight:600;">{text}</span></div>')
-    else:
-        return (f'<div style="display:inline-block; background:{RED_BG}; border:1px solid {RED}; '
-                f'border-radius:4px; padding:2pt 8pt; margin-top:4pt;">'
-                f'<span style="color:{RED}; font-weight:700;">&#9660;</span> '
-                f'<span style="color:{RED}; font-size:8.5pt; font-weight:600;">{text}</span></div>')
+    """Return a signal indicator with colored left border accent."""
+    color = GREEN if positive else RED
+    arrow = "&#9650;" if positive else "&#9660;"
+    return (f'<div style="border-left:3pt solid {color}; padding:3pt 8pt; margin-top:5pt;">'
+            f'<span style="color:{color}; font-size:8pt; font-weight:600;">'
+            f'{arrow} {text}</span></div>')
 
 
 def _signal_amber(text: str) -> str:
-    return (f'<div style="display:inline-block; background:{AMBER_BG}; border:1px solid {AMBER}; '
-            f'border-radius:4px; padding:2pt 8pt; margin-top:4pt;">'
-            f'<span style="color:{AMBER}; font-weight:700;">&#9651;</span> '
-            f'<span style="color:{AMBER}; font-size:8.5pt; font-weight:600;">{text}</span></div>')
+    return (f'<div style="border-left:3pt solid {AMBER}; padding:3pt 8pt; margin-top:5pt;">'
+            f'<span style="color:{AMBER}; font-size:8pt; font-weight:600;">'
+            f'&#9651; {text}</span></div>')
 
 
 def _data_rows(rows: list) -> str:
@@ -142,10 +136,11 @@ def _data_rows(rows: list) -> str:
     for label, val in rows:
         if val is None:
             continue
-        html += (f'<tr><td style="padding:3pt 0; border-bottom:1px solid #f1f5f9; '
-                 f'font-size:9pt; color:{GREY};">{label}</td>'
-                 f'<td style="padding:3pt 0; border-bottom:1px solid #f1f5f9; '
-                 f'font-size:9pt; font-weight:600; text-align:right;">{val}</td></tr>')
+        html += (f'<tr><td style="padding:2pt 0; border-bottom:1px solid #f1f5f9; '
+                 f'font-size:8.5pt; color:{GREY};">{label}</td>'
+                 f'<td style="padding:2pt 0; border-bottom:1px solid #f1f5f9; '
+                 f'font-size:8.5pt; font-weight:600; text-align:right; '
+                 f'font-family:\'Courier New\', Courier, monospace;">{val}</td></tr>')
     html += '</table>'
     return html
 
@@ -154,19 +149,20 @@ def _card(title: str, content: str, note: str = "") -> str:
     """Wrap content in a styled card with optional annotation note."""
     note_html = ""
     if note:
-        note_html = (f'<div style="font-size:7.5pt; color:{GREY}; font-style:italic; '
-                     f'line-height:1.4; margin-top:6pt;">{note}</div>')
-    return (f'<div style="border:1px solid {BORDER_COLOR}; border-radius:8px; '
-            f'padding:12pt 16pt; margin-bottom:10pt; page-break-inside:avoid;">'
-            f'<div style="text-transform:uppercase; letter-spacing:1.5pt; font-size:9pt; '
-            f'color:{MAROON}; font-weight:700; margin-bottom:6pt;">{title}</div>'
+        note_html = (f'<div style="font-size:7pt; color:#6b7280; '
+                     f'line-height:1.4; margin-top:6pt;">&middot; {note}</div>')
+    return (f'<div style="border:1px solid {BORDER_COLOR}; border-radius:3px; '
+            f'padding:10pt 14pt; margin-bottom:10pt; page-break-inside:avoid;">'
+            f'<div style="text-transform:uppercase; letter-spacing:2pt; font-size:8pt; '
+            f'color:{MAROON}; font-weight:700; margin-bottom:6pt; '
+            f'border-bottom:0.5pt solid #d1d5db; padding-bottom:4pt;">{title}</div>'
             f'{content}{note_html}</div>')
 
 
 def _section_bar(title: str) -> str:
     """Full-width maroon section bar."""
-    return (f'<div style="background:{MAROON}; color:white; padding:8pt 14pt; '
-            f'border-radius:4px; font-size:11pt; font-weight:700; letter-spacing:1pt; '
+    return (f'<div style="background:{MAROON}; color:white; padding:6pt 12pt; '
+            f'border-radius:4px; font-size:9pt; font-weight:700; letter-spacing:2pt; '
             f'text-transform:uppercase; margin:16pt 0 10pt 0;">{title}</div>')
 
 
@@ -175,11 +171,11 @@ def _narrative_card(title: str, text: str) -> str:
     return (f'<div style="margin:14pt 0; page-break-inside:avoid;">'
             f'<div style="text-transform:uppercase; letter-spacing:1.5pt; font-size:9pt; '
             f'color:{MAROON}; font-weight:700; margin-bottom:6pt;">{title}</div>'
-            f'<div style="border:1px solid {BORDER_COLOR}; border-radius:8px; '
-            f'padding:12pt 16pt;">'
+            f'<div style="border-top:2pt solid {MAROON}; '
+            f'padding:12pt 16pt; background:#fafafa;">'
             f'<div style="font-size:9.5pt; line-height:1.6;">{_md_to_html(text)}</div>'
             f'</div>'
-            f'<div style="font-size:7pt; color:{GREY}; margin-top:4pt; font-style:italic;">'
+            f'<div style="font-size:7pt; color:{GREY}; margin-top:4pt;">'
             f'AI-generated analysis for educational purposes only. Not investment advice.</div>'
             f'</div>')
 
@@ -190,11 +186,11 @@ def _metric_box(label: str, value: str, sublabel: str = "") -> str:
     if sublabel:
         sub_html = f'<div style="font-size:7.5pt; color:{GREY}; margin-top:2pt;">{sublabel}</div>'
     return (f'<td style="width:33%; padding:8pt; border:1px solid {BORDER_COLOR}; '
-            f'border-radius:6px; text-align:center; vertical-align:top;">'
+            f'border-radius:2px; text-align:center; vertical-align:top;">'
             f'<div style="font-size:7.5pt; color:{GREY}; text-transform:uppercase; '
             f'letter-spacing:0.5pt;">{label}</div>'
             f'<div style="font-size:16pt; font-weight:700; color:{DARK_TEXT}; '
-            f'margin-top:2pt;">{value}</div>'
+            f'margin-top:2pt; font-family:\'Courier New\', Courier, monospace;">{value}</div>'
             f'{sub_html}</td>')
 
 
@@ -216,7 +212,7 @@ def _page_header(ticker: str) -> str:
 # PAGE 1: Cover
 # ---------------------------------------------------------------------------
 
-def _build_cover(ticker: str, info: dict, today_str: str) -> str:
+def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None) -> str:
     name = info.get("longName") or info.get("shortName") or ticker
     sector = info.get("sector", "N/A")
     industry = info.get("industry", "N/A")
@@ -263,6 +259,28 @@ def _build_cover(ticker: str, info: dict, today_str: str) -> str:
     </table>
     """
 
+    # CB Framework Rating based on DCF upside
+    _dcf = (booth or {}).get("dcf_model", {}) or {}
+    _dcf_upside = _dcf.get("upside_pct") if _dcf and "error" not in _dcf else None
+    if _dcf_upside is not None:
+        if _dcf_upside > 15:
+            _rating_verdict = "OVERWEIGHT"
+        elif _dcf_upside < -15:
+            _rating_verdict = "UNDERWEIGHT"
+        else:
+            _rating_verdict = "EQUAL-WEIGHT"
+    else:
+        _rating_verdict = "NOT RATED"
+
+    rating_html = (
+        f'<div style="margin:16pt 0; text-align:left;">'
+        f'<span style="font-size:8pt; color:{GREY}; text-transform:uppercase; letter-spacing:1pt;">CB Framework Rating</span>'
+        f'<div style="font-size:16pt; font-weight:700; color:{MAROON}; margin-top:2pt; letter-spacing:1pt;">'
+        f'{_rating_verdict}</div>'
+        f'<div style="font-size:8pt; color:{GREY};">Based on DCF intrinsic value vs. current market price</div>'
+        f'</div>'
+    )
+
     # Truncate description
     desc_text = description[:500] + "..." if len(description) > 500 else description
 
@@ -304,6 +322,9 @@ def _build_cover(ticker: str, info: dict, today_str: str) -> str:
       <!-- Stats grid -->
       {stats_html}
 
+      <!-- CB Framework Rating -->
+      {rating_html}
+
       <!-- Description -->
       <div style="border-left:3pt solid {BORDER_COLOR}; padding:10pt 14pt; margin:16pt 20pt;
                    font-size:9pt; color:#475569; line-height:1.6; background:#fafafa;">
@@ -316,7 +337,7 @@ def _build_cover(ticker: str, info: dict, today_str: str) -> str:
           <td style="font-size:8pt; color:{GREY}; vertical-align:top;">
             <div>Report Date: {today_str}</div>
             <div style="margin-top:2pt;">Analysis powered by CB frameworks (CF &middot; FS &middot; OM)</div>
-            <div style="margin-top:4pt; display:inline-block; border:1px solid #94a3b8; color:#94a3b8;
+            <div style="margin-top:4pt; display:inline-block; border:1px solid #53565A; color:#53565A;
                         background:none; padding:2pt 10pt; border-radius:3px; font-size:7pt; font-weight:600;
                         letter-spacing:1pt; text-transform:uppercase;">CONFIDENTIAL</div>
           </td>
@@ -410,7 +431,7 @@ def _build_page2(ticker: str, info: dict, booth: dict, fs: dict, thesis: str) ->
             ("R-Squared", f"{r2:.3f}" if r2 is not None else "N/A"),
         ]) + sig, "Lecture 2B: E(R) = Rf + \u03b2[E(Rm) - Rf]. Alpha measures risk-adjusted excess return.")
     else:
-        capm_content = _card("CAPM & Jensen's Alpha", '<div style="font-size:9pt; color:#94a3b8;">Data not available.</div>', "")
+        capm_content = _card("CAPM & Jensen's Alpha", '<div style="font-size:9pt; color:#53565A;">Data not available.</div>', "")
 
     # Capital Structure card
     cs_data = fs.get("capital_structure", {}) or {}
@@ -437,7 +458,7 @@ def _build_page2(ticker: str, info: dict, booth: dict, fs: dict, thesis: str) ->
             ("Debt / Equity", f"{de:.1f}%" if de is not None else "N/A"),
         ]) + sig, "D1: Optimal capital structure balances tax shield benefits against distress costs.")
     else:
-        cs_content = _card("Capital Structure", '<div style="font-size:9pt; color:#94a3b8;">Data not available.</div>', "")
+        cs_content = _card("Capital Structure", '<div style="font-size:9pt; color:#53565A;">Data not available.</div>', "")
 
     return f"""
     <div style="page-break-after:always;">
@@ -463,7 +484,7 @@ def _build_page2(ticker: str, info: dict, booth: dict, fs: dict, thesis: str) ->
       {_narrative_card("Investment Thesis &middot; AI Analysis &middot; Powered by Claude", thesis)}
 
       <!-- Company Info -->
-      <div style="border:1px solid {BORDER_COLOR}; border-radius:8px; padding:10pt 14pt; margin:10pt 0;">
+      <div style="border:1px solid {BORDER_COLOR}; border-radius:3px; padding:10pt 14pt; margin:10pt 0;">
         <div style="font-size:14pt; font-weight:700;">{ticker}</div>
         <div style="font-size:10pt; color:#475569;">{name}</div>
         <div style="margin:4pt 0;">
@@ -639,7 +660,7 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
         sens = dcf_d.get("sensitivity", {})
         sens_html = ""
         if sens:
-            sens_html = '<div style="margin-top:8pt;"><div style="font-size:8pt; color:#94a3b8; margin-bottom:4pt; text-transform:uppercase; letter-spacing:0.5pt;">Sensitivity Grid (WACC vs Growth)</div>'
+            sens_html = '<div style="margin-top:8pt;"><div style="font-size:8pt; color:#53565A; margin-bottom:4pt; text-transform:uppercase; letter-spacing:0.5pt;">Sensitivity Grid (WACC vs Growth)</div>'
             sens_html += '<table style="width:100%; border-collapse:collapse; font-size:7.5pt;">'
 
             if isinstance(list(sens.values())[0], dict):
@@ -1224,7 +1245,7 @@ def _build_disclaimers(ticker: str, today_str: str) -> str:
       {_page_header(ticker)}
       {_section_bar("Important Disclosures & Disclaimer")}
 
-      <div style="font-size:9pt; color:#475569; line-height:1.7;">
+      <div style="font-size:9pt; color:{GREY}; line-height:1.7;">
         <div style="margin-bottom:12pt;">
           <div style="font-weight:700; color:{DARK_TEXT}; margin-bottom:4pt;">Not Investment Advice</div>
           <div>This report has been prepared by Elitez Asia's Analytics solely for informational and educational purposes. Nothing contained in this report constitutes investment advice, a solicitation, an offer to buy or sell any security, or a recommendation of any investment strategy. The analysis and opinions expressed herein are based on publicly available financial data and do not represent the views of any regulated financial institution or licensed investment adviser.</div>
@@ -1273,7 +1294,7 @@ def _build_disclaimers(ticker: str, today_str: str) -> str:
       </div>
 
       <!-- Dark maroon band -->
-      <div style="background:{MAROON}; height:80pt; margin-top:12pt; border-radius:8px 8px 0 0;"></div>
+      <div style="background:{MAROON}; height:80pt; margin-top:12pt;"></div>
     </div>
     """
 
@@ -1300,13 +1321,13 @@ def _build_html(
         size: A4;
         margin: 1.5cm 1.5cm 2cm 1.5cm;
         @bottom-left {{
-            content: "{today_str}";
+            content: "Elitez Asia's Analytics | {today_str}";
             font-size: 7.5pt;
             color: {GREY};
             font-family: Helvetica, Arial, sans-serif;
         }}
         @bottom-right {{
-            content: counter(page) " / 9";
+            content: counter(page) " / " counter(pages);
             font-size: 7.5pt;
             color: {GREY};
             font-family: Helvetica, Arial, sans-serif;
@@ -1348,7 +1369,7 @@ def _build_html(
     }}
     """
 
-    page1 = _build_cover(ticker, info, today_str)
+    page1 = _build_cover(ticker, info, today_str, booth)
     page2 = _build_page2(ticker, info, booth, fs, thesis)
     pages3_5 = _build_cf_fs_pages(ticker, booth, fs, thesis)
     page6 = _build_om_page(ticker, om)
