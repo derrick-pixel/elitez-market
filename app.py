@@ -870,17 +870,17 @@ def _render_cf_column(booth):
             signal=sig,
             note="3-stage DCF: high growth \u2192 fade \u2192 terminal perpetuity. Sensitivity analysis below.",
         )
-        # Sensitivity table
+        # Sensitivity table (always visible)
         sens = d.get("sensitivity", {})
         if sens:
-            with st.expander("DCF Sensitivity Table"):
-                rows_data = []
-                for k, v in sens.items():
-                    parts = k.split(",")
-                    wacc_str = parts[0].replace("WACC=", "")
-                    g_str = parts[1].replace("g=", "") if len(parts) > 1 else ""
-                    rows_data.append({"WACC": wacc_str, "Terminal g": g_str, "Value/Share": f"${v:,.2f}"})
-                st.table(pd.DataFrame(rows_data))
+            st.markdown(f'<div style="font-size:0.7rem; color:{GREY}; text-transform:uppercase; letter-spacing:2px; margin:0.3rem 0;">Sensitivity — Intrinsic Value / Share</div>', unsafe_allow_html=True)
+            rows_data = []
+            for k, v in sens.items():
+                parts = k.split(",")
+                wacc_str = parts[0].replace("WACC=", "")
+                g_str = parts[1].replace("g=", "") if len(parts) > 1 else ""
+                rows_data.append({"WACC": wacc_str, "Terminal g": g_str, "Value/Share": f"${v:,.2f}"})
+            st.table(pd.DataFrame(rows_data))
 
 
 # ---------------------------------------------------------------------------
@@ -1529,8 +1529,10 @@ def page_cb_analysis():
             st.markdown(f'<div class="metric-card"><h4>52W Low</h4><div class="value">{_fmt(low52, "price")}</div></div>', unsafe_allow_html=True)
 
         if description:
-            with st.expander("Company Description"):
-                st.write(description)
+            st.markdown(f"""<div style="border-left:3px solid {MAROON}; padding:0.8rem 1rem; margin:0.8rem 0;
+                background:#fafafa; font-size:0.9rem; line-height:1.6; color:#475569; border-radius:0 3px 3px 0;">
+                {description[:600] + '...' if len(description) > 600 else description}
+            </div>""", unsafe_allow_html=True)
 
         # --- Run all 4 analyses ---
         booth = _cached_booth(ticker)
@@ -1544,7 +1546,7 @@ def page_cb_analysis():
 
         # ====== INVESTMENT THESIS AI ======
         st.markdown(
-            '<div class="ai-header">INVESTMENT THESIS \u00b7 AI ANALYSIS \u00b7 POWERED BY CLAUDE</div>',
+            '<div class="ai-header">INVESTMENT THESIS \u00b7 AI ANALYSIS \u00b7 POWERED BY ELITEZ-CB ANALYSIS</div>',
             unsafe_allow_html=True,
         )
         with st.spinner("Generating investment thesis..."):
@@ -1570,7 +1572,7 @@ def page_cb_analysis():
 
         # ====== CF+FS THESIS AI (full-width) ======
         _ai_block(
-            "CF + FS THESIS \u00b7 AI ANALYSIS \u00b7 POWERED BY CLAUDE",
+            "CF + FS THESIS \u00b7 AI ANALYSIS \u00b7 POWERED BY ELITEZ-CB ANALYSIS",
             _md(thesis) if thesis else "<em>No thesis generated.</em>",
         )
 
@@ -1579,7 +1581,7 @@ def page_cb_analysis():
 
         # OM Narrative AI
         st.markdown(
-            '<div class="ai-header">OPERATIONS MANAGEMENT \u00b7 AI NARRATIVE \u00b7 POWERED BY CLAUDE</div>',
+            '<div class="ai-header">OPERATIONS MANAGEMENT \u00b7 AI NARRATIVE \u00b7 POWERED BY ELITEZ-CB ANALYSIS</div>',
             unsafe_allow_html=True,
         )
         with st.spinner("Generating operations narrative..."):
@@ -1597,7 +1599,7 @@ def page_cb_analysis():
 
         # CS Narrative AI
         st.markdown(
-            '<div class="ai-header">COMPETITIVE STRATEGY \u00b7 AI NARRATIVE \u00b7 POWERED BY CLAUDE</div>',
+            '<div class="ai-header">COMPETITIVE STRATEGY \u00b7 AI NARRATIVE \u00b7 POWERED BY ELITEZ-CB ANALYSIS</div>',
             unsafe_allow_html=True,
         )
         with st.spinner("Generating strategy narrative..."):
