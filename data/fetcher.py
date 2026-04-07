@@ -1,9 +1,12 @@
 """
-Data fetcher with fallback chain: yfinance → Finnhub+Stooq → empty StockData.
+Data fetcher with fallback chain:
+  1. yfinance (library)
+  2. Yahoo Finance direct JSON (bypasses yfinance library issues)
+  3. Finnhub+Stooq (if FINNHUB_KEY set)
+  4. Empty StockData
 
-yfinance is the primary source. When it fails (common on Streamlit Cloud
-shared IPs), the Finnhub+Stooq fallback activates automatically if
-FINNHUB_KEY is set in the environment.
+On Streamlit Cloud, yfinance often fails due to shared IP rate-limiting.
+The Yahoo JSON fallback uses a different endpoint that is more reliable.
 """
 
 import io
@@ -22,17 +25,16 @@ from config import DEFAULT_PERIOD, DEFAULT_INTERVAL
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Primary: yfinance (with retry)
+# Source 1: yfinance library (with retry)
 # ---------------------------------------------------------------------------
 
 def _fetch_yfinance(ticker: str) -> Optional[StockData]:
-    """Fetch all data from yfinance. Retries once on failure (rate-limit recovery)."""
+    """Fetch all data from yfinance. Retries once on failure."""
     for attempt in range(2):
         try:
             t = yf.Ticker(ticker)
             info = t.info or {}
 
-            # yfinance returns partial/empty info on rate-limit
             has_price = (
                 info.get("currentPrice")
                 or info.get("regularMarketPrice")
@@ -40,17 +42,16 @@ def _fetch_yfinance(ticker: str) -> Optional[StockData]:
             )
             if not has_price and not info.get("shortName"):
                 if attempt == 0:
-                    logger.info("yfinance returned empty info for %s, retrying...", ticker)
-                    time.sleep(2)
+                    logger.info("yfinance empty for %s, retrying...", ticker)
+                    time.sleep(1)
                     continue
                 return None
 
             hist = t.history(period=DEFAULT_PERIOD, interval=DEFAULT_INTERVAL)
             if hist is None or hist.empty:
                 if attempt == 0:
-                    time.sleep(2)
+                    time.sleep(1)
                     continue
-                # Still return with info if we have it — analytics can work without history
                 if has_price:
                     return StockData(ticker=ticker.upper(), info=info)
                 return None
@@ -67,7 +68,7 @@ def _fetch_yfinance(ticker: str) -> Optional[StockData]:
         except Exception as e:
             logger.warning("yfinance attempt %d failed for %s: %s", attempt + 1, ticker, e)
             if attempt == 0:
-                time.sleep(2)
+                time.sleep(1)
                 continue
             return None
     return None
@@ -84,7 +85,129 @@ def _safe_df(ticker_obj, attr: str) -> Optional[pd.DataFrame]:
 
 
 # ---------------------------------------------------------------------------
-# Fallback: Finnhub (fundamentals) + Stooq (historical prices)
+# Source 2: Yahoo Finance direct JSON (different endpoint, more reliable)
+# ---------------------------------------------------------------------------
+
+_YF_QUOTE_URL = "https://query1.finance.yahoo.com/v7/finance/quote"
+_YF_CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
+_YF_HEADERS = {"User-Agent": "Mozilla/5.0"}
+
+
+def _fetch_yahoo_direct(ticker: str) -> Optional[StockData]:
+    """Fetch from Yahoo Finance REST API directly (bypasses yfinance library)."""
+    try:
+        # Quote data
+        r = requests.get(
+            _YF_QUOTE_URL,
+            params={"symbols": ticker, "fields": "shortName,longName,sector,industry,"
+                    "regularMarketPrice,marketCap,trailingPE,forwardPE,epsTrailingTwelveMonths,"
+                    "dividendYield,fiftyTwoWeekHigh,fiftyTwoWeekLow,priceToBook,beta,"
+                    "profitMargins,returnOnEquity,revenueGrowth,totalRevenue,ebitda,"
+                    "freeCashflow,totalDebt,totalCash,operatingMargins,grossMargins,"
+                    "returnOnAssets,earningsGrowth,priceToSalesTrailing12Months,"
+                    "enterpriseToEbitda,sharesOutstanding,longBusinessSummary,"
+                    "debtToEquity"},
+            headers=_YF_HEADERS,
+            timeout=10,
+        )
+        r.raise_for_status()
+        data = r.json()
+        quotes = data.get("quoteResponse", {}).get("result", [])
+        if not quotes:
+            return None
+
+        q = quotes[0]
+        price = q.get("regularMarketPrice")
+        if not price:
+            return None
+
+        info = {
+            "shortName": q.get("shortName", ticker),
+            "longName": q.get("longName") or q.get("shortName", ticker),
+            "sector": q.get("sector", ""),
+            "industry": q.get("industry", ""),
+            "currentPrice": price,
+            "regularMarketPrice": price,
+            "previousClose": q.get("regularMarketPreviousClose"),
+            "marketCap": q.get("marketCap"),
+            "sharesOutstanding": q.get("sharesOutstanding"),
+            "trailingPE": q.get("trailingPE"),
+            "forwardPE": q.get("forwardPE"),
+            "trailingEps": q.get("epsTrailingTwelveMonths"),
+            "dividendYield": q.get("dividendYield"),
+            "priceToBook": q.get("priceToBook"),
+            "priceToSalesTrailing12Months": q.get("priceToSalesTrailing12Months"),
+            "enterpriseToEbitda": q.get("enterpriseToEbitda"),
+            "fiftyTwoWeekHigh": q.get("fiftyTwoWeekHigh"),
+            "fiftyTwoWeekLow": q.get("fiftyTwoWeekLow"),
+            "beta": q.get("beta"),
+            "profitMargins": q.get("profitMargins"),
+            "grossMargins": q.get("grossMargins"),
+            "operatingMargins": q.get("operatingMargins"),
+            "returnOnEquity": q.get("returnOnEquity"),
+            "returnOnAssets": q.get("returnOnAssets"),
+            "revenueGrowth": q.get("revenueGrowth"),
+            "earningsGrowth": q.get("earningsGrowth"),
+            "debtToEquity": q.get("debtToEquity"),
+            "totalRevenue": q.get("totalRevenue"),
+            "ebitda": q.get("ebitda"),
+            "freeCashflow": q.get("freeCashflow"),
+            "totalDebt": q.get("totalDebt"),
+            "totalCash": q.get("totalCash"),
+            "longBusinessSummary": q.get("longBusinessSummary", ""),
+        }
+
+        # Chart data for price history
+        history = _fetch_yahoo_chart(ticker)
+
+        return StockData(
+            ticker=ticker.upper(),
+            info=info,
+            history=history,
+        )
+    except Exception as e:
+        logger.warning("Yahoo direct JSON failed for %s: %s", ticker, e)
+        return None
+
+
+def _fetch_yahoo_chart(ticker: str) -> Optional[pd.DataFrame]:
+    """Fetch 1-year daily chart from Yahoo Finance REST API."""
+    try:
+        url = _YF_CHART_URL.format(ticker=ticker)
+        r = requests.get(
+            url,
+            params={"range": "1y", "interval": "1d"},
+            headers=_YF_HEADERS,
+            timeout=10,
+        )
+        r.raise_for_status()
+        data = r.json()
+        result = data.get("chart", {}).get("result", [])
+        if not result:
+            return None
+
+        ts = result[0].get("timestamp", [])
+        quotes = result[0].get("indicators", {}).get("quote", [{}])[0]
+        if not ts or not quotes.get("close"):
+            return None
+
+        df = pd.DataFrame({
+            "Open": quotes.get("open", []),
+            "High": quotes.get("high", []),
+            "Low": quotes.get("low", []),
+            "Close": quotes.get("close", []),
+            "Volume": quotes.get("volume", []),
+        }, index=pd.to_datetime(ts, unit="s"))
+        df.index.name = "Date"
+        df = df.dropna(subset=["Close"])
+        return df if not df.empty else None
+    except Exception as e:
+        logger.warning("Yahoo chart failed for %s: %s", ticker, e)
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Source 3: Finnhub (fundamentals) + Stooq (historical prices)
 # ---------------------------------------------------------------------------
 
 _FINNHUB_BASE = "https://finnhub.io/api/v1"
@@ -99,7 +222,6 @@ def _finnhub_get(endpoint: str, params: dict) -> Optional[dict]:
         r = requests.get(f"{_FINNHUB_BASE}{endpoint}", params=params, timeout=10)
         r.raise_for_status()
         data = r.json()
-        # Finnhub returns {"error": "..."} on bad requests
         if isinstance(data, dict) and "error" in data:
             logger.warning("Finnhub error: %s", data["error"])
             return None
@@ -121,10 +243,8 @@ def _stooq_history(ticker: str) -> Optional[pd.DataFrame]:
             return None
         df["Date"] = pd.to_datetime(df["Date"])
         df = df.set_index("Date").sort_index()
-        # Keep only last ~1 year
         cutoff = pd.Timestamp.now() - pd.DateOffset(years=1)
         df = df[df.index >= cutoff]
-        # Rename to yfinance-compatible columns
         df = df.rename(columns={
             "Open": "Open", "High": "High", "Low": "Low",
             "Close": "Close", "Volume": "Volume",
@@ -149,7 +269,6 @@ def _fetch_finnhub_stooq(ticker: str) -> Optional[StockData]:
     mkt_cap = (profile.get("marketCapitalization") or 0) * 1e6
     price = quote.get("c") or 0
 
-    # Derive revenue / FCF / EBITDA from per-share metrics to avoid unit ambiguity
     rev_per_share = met.get("revenuePerShareAnnual") or 0
     revenue = rev_per_share * shares if shares else 0
     fcf_per_share = met.get("fcfPerShareAnnual") or 0
@@ -157,11 +276,9 @@ def _fetch_finnhub_stooq(ticker: str) -> Optional[StockData]:
     ebitda_per_share = met.get("ebitdaPerShareAnnual") or met.get("ebitdPerShareAnnual") or 0
     ebitda = ebitda_per_share * shares if shares else 0
 
-    # Finnhub returns ratios as percentages — divide by 100
     gross_margin = (met.get("grossMarginAnnual") or 0) / 100.0
     operating_margin = (met.get("operatingMarginAnnual") or 0) / 100.0
     net_margin = (met.get("netProfitMarginAnnual") or 0) / 100.0
-    roe_val = (met.get("roeRoa", {}) if isinstance(met.get("roeRoa"), dict) else {})
     roe_annual = (met.get("roeTTM") or 0) / 100.0
     roa_annual = (met.get("roaTTM") or 0) / 100.0
 
@@ -172,13 +289,9 @@ def _fetch_finnhub_stooq(ticker: str) -> Optional[StockData]:
         "industry": profile.get("finnhubIndustry", ""),
         "country": profile.get("country", ""),
         "website": profile.get("weburl", ""),
-        "logo_url": profile.get("logo", ""),
         "currentPrice": price,
         "regularMarketPrice": price,
         "previousClose": quote.get("pc"),
-        "open": quote.get("o"),
-        "dayHigh": quote.get("h"),
-        "dayLow": quote.get("l"),
         "marketCap": mkt_cap,
         "sharesOutstanding": shares,
         "trailingPE": met.get("peNormalizedAnnual") or met.get("peTTM"),
@@ -199,7 +312,7 @@ def _fetch_finnhub_stooq(ticker: str) -> Optional[StockData]:
         "totalRevenue": revenue,
         "ebitda": ebitda,
         "freeCashflow": fcf,
-        "totalDebt": met.get("totalDebtCagr5Y"),  # approximate
+        "totalDebt": met.get("totalDebtCagr5Y"),
         "totalCash": None,
         "fiftyTwoWeekHigh": met.get("52WeekHigh"),
         "fiftyTwoWeekLow": met.get("52WeekLow"),
@@ -209,11 +322,12 @@ def _fetch_finnhub_stooq(ticker: str) -> Optional[StockData]:
 
     history = _stooq_history(ticker)
 
+    # Return even without history — analytics can still work with fundamentals
     return StockData(
         ticker=ticker.upper(),
         info=info,
         history=history,
-    ) if history is not None else None
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -223,22 +337,28 @@ def _fetch_finnhub_stooq(ticker: str) -> Optional[StockData]:
 def fetch_stock_data(ticker: str) -> StockData:
     """
     Fetch stock data with fallback chain:
-    yfinance → Finnhub+Stooq → empty StockData.
+    yfinance → Yahoo direct JSON → Finnhub+Stooq → empty StockData.
     """
     ticker = ticker.strip().upper()
 
-    # 1. Try yfinance (primary)
+    # 1. Try yfinance library
     data = _fetch_yfinance(ticker)
     if data is not None:
         logger.info("Fetched %s from yfinance", ticker)
         return data
 
-    # 2. Try Finnhub + Stooq (fallback)
+    # 2. Try Yahoo Finance direct JSON endpoint
+    data = _fetch_yahoo_direct(ticker)
+    if data is not None:
+        logger.info("Fetched %s from Yahoo direct JSON", ticker)
+        return data
+
+    # 3. Try Finnhub + Stooq (requires FINNHUB_KEY)
     data = _fetch_finnhub_stooq(ticker)
     if data is not None:
         logger.info("Fetched %s from Finnhub+Stooq", ticker)
         return data
 
-    # 3. Return empty StockData
+    # 4. Return empty StockData
     logger.warning("All sources failed for %s, returning empty StockData", ticker)
     return StockData(ticker=ticker)
