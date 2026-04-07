@@ -290,24 +290,27 @@ def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None) ->
 
     return f"""
     <div style="page-break-after:always;">
-      <!-- Header bar -->
-      <div style="background:{MAROON}; padding:10pt 16pt; border-radius:4px; margin-bottom:0;">
+      <!-- Header bar — bleeds outside page margins -->
+      <div style="background:{MAROON}; padding:28pt 24pt 18pt 24pt;
+                   margin:0 -1.5cm 0 -1.5cm;">
         <table width="100%"><tr>
-          <td style="vertical-align:middle;">
-            <img src="data:image/svg+xml;base64,{_LOGO_B64_SMALL}" height="22" style="vertical-align:middle;" />
-            <span style="color:white; font-size:9pt; font-weight:600; margin-left:8pt; vertical-align:middle;
-                         letter-spacing:1pt; text-transform:uppercase;">CB Research Framework</span>
+          <td style="vertical-align:top;">
+            <div style="color:white; font-size:28pt; font-weight:700; letter-spacing:3pt;
+                        font-family:Helvetica,Arial,sans-serif;">ELITEZ</div>
+            <div style="color:rgba(255,255,255,0.85); font-size:8pt; font-weight:600;
+                        letter-spacing:2pt; text-transform:uppercase; margin-top:6pt;">CB Research Framework</div>
           </td>
-          <td style="text-align:right; vertical-align:middle;">
-            <span style="color:white; font-size:9pt; font-weight:600; letter-spacing:1pt;
-                         text-transform:uppercase;">Equity Research Report</span>
-            <span style="color:rgba(255,255,255,0.7); font-size:8pt; margin-left:10pt;">CB CF &middot; FS &middot; OM</span>
+          <td style="text-align:right; vertical-align:top; padding-top:6pt;">
+            <div style="color:white; font-size:10pt; font-weight:600; letter-spacing:2pt;
+                        text-transform:uppercase;">Equity Research Report</div>
+            <div style="color:rgba(255,255,255,0.6); font-size:8pt; margin-top:3pt;
+                        letter-spacing:1pt;">CB CF &middot; FS &middot; OM</div>
           </td>
         </tr></table>
       </div>
 
       <!-- Spacer -->
-      <div style="height:80pt;"></div>
+      <div style="height:60pt;"></div>
 
       <!-- Ticker -->
       <div style="text-align:left;">
@@ -1334,6 +1337,7 @@ def _build_html(
         }}
     }}
     @page :first {{
+        margin-top: 0;
         @bottom-left {{ content: none; }}
         @bottom-right {{ content: none; }}
     }}
