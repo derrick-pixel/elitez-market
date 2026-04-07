@@ -138,6 +138,141 @@ st.markdown(f"""
     .tag-good {{ color: #16a34a; font-weight: 600; }}
     .tag-warn {{ color: #d97706; font-weight: 600; }}
     .tag-bad {{ color: #dc2626; font-weight: 600; }}
+
+    /* --- CB Analysis PDF-style CSS --- */
+    .section-bar {{
+        background: {MAROON};
+        color: white;
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        border-radius: 4px;
+        margin: 1.5rem 0 1rem 0;
+    }}
+    .card-title {{
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        font-size: 0.75rem;
+        color: {MAROON};
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.3rem;
+        border-bottom: 1px solid #e2e8f0;
+    }}
+    .signal-pos {{
+        background: #f0fdf4;
+        border-left: 3px solid #16a34a;
+        padding: 0.4rem 0.7rem;
+        border-radius: 0 4px 4px 0;
+        font-size: 0.78rem;
+        margin-top: 0.5rem;
+        color: #16a34a;
+        font-weight: 600;
+    }}
+    .signal-neg {{
+        background: #fef2f2;
+        border-left: 3px solid #dc2626;
+        padding: 0.4rem 0.7rem;
+        border-radius: 0 4px 4px 0;
+        font-size: 0.78rem;
+        margin-top: 0.5rem;
+        color: #dc2626;
+        font-weight: 600;
+    }}
+    .signal-warn {{
+        background: #fffbeb;
+        border-left: 3px solid #d97706;
+        padding: 0.4rem 0.7rem;
+        border-radius: 0 4px 4px 0;
+        font-size: 0.78rem;
+        margin-top: 0.5rem;
+        color: #d97706;
+        font-weight: 600;
+    }}
+    .card-note {{
+        font-size: 0.7rem;
+        color: #94a3b8;
+        line-height: 1.4;
+        margin-top: 0.5rem;
+    }}
+    .pill {{
+        display: inline-block;
+        background: rgba(255,255,255,0.2);
+        padding: 0.15rem 0.65rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        margin-right: 0.4rem;
+        border: 1px solid rgba(255,255,255,0.3);
+    }}
+    .exec-box {{
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 1rem 1.2rem;
+        text-align: center;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        height: 100%;
+    }}
+    .exec-box .exec-label {{
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #94a3b8;
+        margin-bottom: 0.3rem;
+    }}
+    .exec-box .exec-value {{
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+    }}
+    .exec-box .exec-sub {{
+        font-size: 0.75rem;
+        color: #94a3b8;
+        margin-top: 0.15rem;
+    }}
+    .ai-header {{
+        background: {MAROON};
+        color: white;
+        padding: 0.45rem 1rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        border-radius: 4px 4px 0 0;
+        margin-top: 1.5rem;
+        margin-bottom: 0;
+    }}
+    .ai-body {{
+        background: linear-gradient(135deg, #fdf2f4 0%, #fff 100%);
+        border: 1px solid #e2e8f0;
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        padding: 1.2rem 1.5rem;
+        margin-bottom: 1rem;
+        line-height: 1.7;
+    }}
+    .data-table {{
+        width: 100%;
+        border-collapse: collapse;
+    }}
+    .data-table td {{
+        padding: 0.35rem 0.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.85rem;
+    }}
+    .data-table td:first-child {{
+        color: #94a3b8;
+        font-weight: 500;
+    }}
+    .data-table td:last-child {{
+        text-align: right;
+        font-weight: 600;
+        color: #1e293b;
+        font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -367,7 +502,815 @@ def page_dashboard():
 
 
 # ===================================================================
-# PAGE 2: CB ANALYSIS
+# PAGE 2: CB ANALYSIS — PDF-style render helpers
+# ===================================================================
+
+def _render_card(title, rows, signal=None, note=None):
+    """Render a styled analysis card.
+
+    Args:
+        title: card heading (small-caps maroon)
+        rows: list of (label, value) tuples
+        signal: optional tuple (type, text) where type is 'pos'|'neg'|'warn'
+        note: optional annotation string
+    """
+    table_rows = "".join(
+        f"<tr><td>{label}</td><td>{val}</td></tr>"
+        for label, val in rows if val is not None
+    )
+    if not table_rows:
+        return
+
+    signal_html = ""
+    if signal:
+        stype, stext = signal
+        arrow = "▲" if stype == "pos" else ("▼" if stype == "neg" else "△")
+        signal_html = f'<div class="signal-{stype}">{arrow} {stext}</div>'
+
+    note_html = ""
+    if note:
+        note_html = f'<div class="card-note">{note}</div>'
+
+    html = (
+        f'<div class="booth-card">'
+        f'<div class="card-title">{title}</div>'
+        f'<table class="data-table">{table_rows}</table>'
+        f'{signal_html}{note_html}'
+        f'</div>'
+    )
+    st.markdown(html, unsafe_allow_html=True)
+
+
+def _tag(val, good_threshold, bad_threshold, higher_is_better=True, fmt_fn=None):
+    """Return colored HTML tag."""
+    if val is None:
+        return "N/A"
+    display = fmt_fn(val) if fmt_fn else f"{val}"
+    if higher_is_better:
+        if val >= good_threshold:
+            return f'<span class="tag-good">{display}</span>'
+        if val <= bad_threshold:
+            return f'<span class="tag-bad">{display}</span>'
+    else:
+        if val <= good_threshold:
+            return f'<span class="tag-good">{display}</span>'
+        if val >= bad_threshold:
+            return f'<span class="tag-bad">{display}</span>'
+    return f'<span class="tag-warn">{display}</span>'
+
+
+def _section_bar(text):
+    """Full-width maroon section header bar."""
+    st.markdown(f'<div class="section-bar">{text}</div>', unsafe_allow_html=True)
+
+
+def _ai_block(header_text, body_html):
+    """Render AI narrative with maroon header + body card."""
+    st.markdown(
+        f'<div class="ai-header">{header_text}</div>'
+        f'<div class="ai-body">{body_html}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Executive Summary helpers
+# ---------------------------------------------------------------------------
+
+def _exec_metric_box(label, value_html, sub_html=""):
+    """Return HTML for a single executive summary metric box."""
+    sub = f'<div class="exec-sub">{sub_html}</div>' if sub_html else ""
+    return (
+        f'<div class="exec-box">'
+        f'<div class="exec-label">{label}</div>'
+        f'<div class="exec-value">{value_html}</div>'
+        f'{sub}'
+        f'</div>'
+    )
+
+
+def _render_executive_summary(booth, fs):
+    """Render the 2x3 executive summary grid."""
+    # --- Gather data ---
+    dcf = booth.get("dcf_model", {})
+    cr = fs.get("credit_rating", {})
+    az = fs.get("altman_z", {})
+    fcf_d = booth.get("free_cash_flow", {})
+    capm = booth.get("capm_alpha", {})
+    po = fs.get("pecking_order", {})
+
+    # DCF upside
+    upside = dcf.get("upside_pct")
+    iv = dcf.get("intrinsic_value_per_share")
+    if upside is not None:
+        color = "#16a34a" if upside >= 0 else "#dc2626"
+        dcf_val = f'<span style="color:{color}">{upside:+.1f}%</span>'
+        dcf_sub = f"Intrinsic value {_fmt(iv, 'price')}" if iv else ""
+    else:
+        dcf_val = "N/A"
+        dcf_sub = ""
+
+    # Implied rating
+    rating = cr.get("implied_rating", "N/A")
+    score = cr.get("composite_score")
+    if score is not None:
+        grade_label = "Investment Grade" if score >= 4 else "High Yield"
+        grade_color = "#16a34a" if score >= 4 else "#d97706"
+        rating_sub = f'<span style="color:{grade_color}">{grade_label}</span>'
+    else:
+        rating_sub = ""
+
+    # Altman Z
+    z = az.get("z_score")
+    zone = az.get("zone", "")
+    if z is not None:
+        if z >= 2.99:
+            z_color = "#16a34a"
+        elif z >= 1.81:
+            z_color = "#94a3b8"
+        else:
+            z_color = "#dc2626"
+        z_val = f'<span style="color:{z_color}">{z:.2f}</span>'
+        z_sub = zone
+    else:
+        z_val = "N/A"
+        z_sub = ""
+
+    # FCF Yield
+    fcf_yield = fcf_d.get("fcf_yield_pct")
+    if fcf_yield is not None:
+        fy_color = "#16a34a" if fcf_yield > 0 else "#dc2626"
+        fcf_val = f'<span style="color:{fy_color}">{fcf_yield:.2f}%</span>'
+    else:
+        fcf_val = "N/A"
+
+    # Jensen's Alpha
+    alpha = capm.get("jensens_alpha")
+    if alpha is not None and "error" not in capm:
+        a_pct = alpha * 100
+        a_color = "#16a34a" if a_pct > 0 else "#dc2626"
+        alpha_val = f'<span style="color:{a_color}">{a_pct:+.2f}%</span>'
+    else:
+        alpha_val = "N/A"
+
+    # Pecking Order
+    po_stage = po.get("pecking_order_stage", "N/A") if po else "N/A"
+    po_score_val = ""
+    if po:
+        # Build a rough net score from boolean checks
+        checks = 0
+        total = 5
+        if po.get("internal_funding_sufficient"):
+            checks += 1
+        if po.get("payout_ratio") is not None and po.get("payout_ratio", 100) < 60:
+            checks += 1
+        if po.get("re_to_equity") is not None and po.get("re_to_equity", 0) > 0.3:
+            checks += 1
+        if po.get("debt_level") in ("low", "Low", "moderate", "Moderate"):
+            checks += 1
+        if po.get("debt_to_mktcap") is not None and po.get("debt_to_mktcap", 1) < 0.5:
+            checks += 1
+        po_score_val = f"{checks}/{total}"
+
+    # --- Render 2x3 grid ---
+    r1c1, r1c2, r1c3 = st.columns(3)
+    with r1c1:
+        st.markdown(_exec_metric_box("DCF UPSIDE / DOWNSIDE", dcf_val, dcf_sub), unsafe_allow_html=True)
+    with r1c2:
+        st.markdown(_exec_metric_box("IMPLIED S&P RATING", f"<strong>{rating}</strong>", rating_sub), unsafe_allow_html=True)
+    with r1c3:
+        st.markdown(_exec_metric_box("ALTMAN Z-SCORE", z_val, z_sub), unsafe_allow_html=True)
+
+    r2c1, r2c2, r2c3 = st.columns(3)
+    with r2c1:
+        st.markdown(_exec_metric_box("FCF YIELD", fcf_val), unsafe_allow_html=True)
+    with r2c2:
+        st.markdown(_exec_metric_box("JENSEN'S ALPHA (\u03b1)", alpha_val), unsafe_allow_html=True)
+    with r2c3:
+        st.markdown(_exec_metric_box("PECKING ORDER", po_stage, f"Net score: {po_score_val}" if po_score_val else ""), unsafe_allow_html=True)
+
+
+# ---------------------------------------------------------------------------
+# CF column render
+# ---------------------------------------------------------------------------
+
+def _render_cf_column(booth):
+    """Render all Corporate Finance cards inside a column."""
+
+    # 1. CAPM & Jensen's Alpha
+    d = booth.get("capm_alpha", {})
+    if d and "error" not in d:
+        alpha = d.get("jensens_alpha")
+        alpha_pct = alpha * 100 if alpha is not None else None
+        if alpha_pct is not None:
+            sig = ("pos", f"Jensen's \u03b1 = {alpha_pct:+.2f}% — genuine operational outperformance") if alpha_pct > 0 else ("neg", f"Jensen's \u03b1 = {alpha_pct:+.2f}% — underperformance vs CAPM benchmark")
+        else:
+            sig = None
+        _render_card(
+            "CAPM & JENSEN'S ALPHA \u00b7 LECTURE 2B",
+            [
+                ("Beta (\u03b2)", f"{d.get('beta', 'N/A')}"),
+                ("Risk-Free Rate (r\u1da0)", f"{d.get('risk_free_rate', 0)*100:.2f}%"),
+                ("Market Risk Premium", f"{d.get('market_risk_premium', 0.07)*100:.1f}%"),
+                ("CAPM Expected Return", f"{d.get('expected_return', 0)*100:.2f}%"),
+                ("Actual Return (ann.)", f"{d.get('actual_annualized_return', 0)*100:.2f}%"),
+                ("Jensen's Alpha (\u03b1)", _tag(alpha_pct, 2, -2, True, lambda v: f"{v:+.2f}%") if alpha_pct is not None else "N/A"),
+                ("R\u00b2", f"{d.get('r_squared', 0):.4f}"),
+            ],
+            signal=sig,
+            note="r\u1da0 + \u03b2(r\u2098 \u2212 r\u1da0) = CAPM expected return; \u03b1 = actual \u2212 expected.",
+        )
+
+    # 2. Valuation Multiples
+    d = booth.get("valuation_multiples", {})
+    if d:
+        pe = d.get("pe_ratio")
+        pe_med = d.get("pe_sector_median")
+        pe_cmp = d.get("pe_vs_sector", "")
+        ev = d.get("ev_ebitda")
+        ev_med = d.get("ev_ebitda_sector_median")
+        ev_cmp = d.get("ev_ebitda_vs_sector", "")
+        pb = d.get("pb_ratio")
+        pb_med = d.get("pb_sector_median")
+        pb_cmp = d.get("pb_vs_sector", "")
+        ps = d.get("ps_ratio")
+        ps_med = d.get("ps_sector_median")
+        ps_cmp = d.get("ps_vs_sector", "")
+
+        # Signal: count how many are "Premium" vs "Discount"
+        labels = [pe_cmp, ev_cmp, pb_cmp, ps_cmp]
+        premium_count = sum(1 for l in labels if l and "premium" in str(l).lower())
+        discount_count = sum(1 for l in labels if l and "discount" in str(l).lower())
+        if discount_count > premium_count:
+            sig = ("pos", f"Trading at a discount on {discount_count}/4 multiples — potential value")
+        elif premium_count > discount_count:
+            sig = ("neg", f"Trading at a premium on {premium_count}/4 multiples — richly valued")
+        else:
+            sig = ("warn", "Mixed valuation signals vs sector medians")
+
+        def _mult_row(name, val, med, cmp_str):
+            if val is None:
+                return (name, "N/A")
+            med_str = f" vs sector median {med}" if med else ""
+            cmp_display = f" \u2014 {cmp_str}" if cmp_str else ""
+            return (name, f"{val:.1f}x{med_str}{cmp_display}")
+
+        _render_card(
+            "VALUATION MULTIPLES \u00b7 LECTURE 5B",
+            [
+                _mult_row("P/E", pe, pe_med, pe_cmp),
+                _mult_row("EV/EBITDA", ev, ev_med, ev_cmp),
+                _mult_row("P/B", pb, pb_med, pb_cmp),
+                _mult_row("P/S", ps, ps_med, ps_cmp),
+            ],
+            signal=sig,
+            note=f"Sector: {d.get('sector', 'N/A')}. Multiples compared to sector medians.",
+        )
+
+    # 3. WACC
+    d = booth.get("wacc", {})
+    if d and "error" not in d:
+        _render_card(
+            "WACC \u00b7 LECTURE 4B",
+            [
+                ("Beta (\u03b2)", f"{d.get('beta', 'N/A')}"),
+                ("Cost of Equity (r\u1d31)", f"{d.get('cost_of_equity', 0)*100:.2f}%"),
+                ("Tax Rate", f"{d.get('tax_rate', 0)*100:.1f}%"),
+                ("E / (E+D)", f"{d.get('equity_weight', 0)*100:.1f}%"),
+                ("D / (E+D)", f"{d.get('debt_weight', 0)*100:.1f}%"),
+                ("WACC", f"<strong>{d.get('wacc', 0)*100:.2f}%</strong>"),
+            ],
+            note="WACC = (E/V)\u00b7r\u1d31 + (D/V)\u00b7r\u1d48\u00b7(1\u2212t). Used as discount rate in DCF.",
+        )
+
+    # 4. Free Cash Flow
+    d = booth.get("free_cash_flow", {})
+    if d:
+        fcf_y = d.get("fcf_yield_pct")
+        if fcf_y is not None:
+            sig = ("pos", f"FCF yield {fcf_y:.2f}% — strong cash generation") if fcf_y > 3 else (("neg", f"FCF yield {fcf_y:.2f}% — weak cash conversion") if fcf_y < 0 else ("warn", f"FCF yield {fcf_y:.2f}%"))
+        else:
+            sig = None
+
+        fcf_val = d.get("free_cash_flow")
+        ocf_val = d.get("operating_cash_flow")
+        rev = d.get("revenue")
+        mktcap = d.get("market_cap")
+        fcf_margin = d.get("fcf_margin_pct")
+        pfcf = None
+        if fcf_val and mktcap and fcf_val > 0:
+            pfcf = mktcap / fcf_val
+
+        _render_card(
+            "FREE CASH FLOW \u00b7 LECTURES 4A/4B",
+            [
+                ("Operating Cash Flow", _fmt(ocf_val, "currency")),
+                ("Free Cash Flow", _fmt(fcf_val, "currency")),
+                ("FCF Yield", f"{fcf_y:.2f}%" if fcf_y is not None else "N/A"),
+                ("FCF Margin", f"{fcf_margin:.2f}%" if fcf_margin is not None else "N/A"),
+                ("P/FCF", f"{pfcf:.1f}x" if pfcf else "N/A"),
+            ],
+            signal=sig,
+            note="FCF = Operating CF \u2212 CapEx. FCF Yield = FCF / Market Cap.",
+        )
+
+    # 5. DCF
+    d = booth.get("dcf_model", {})
+    if d and "error" not in d:
+        upside = d.get("upside_pct")
+        iv = d.get("intrinsic_value_per_share")
+        cp = d.get("current_price")
+        if upside is not None:
+            if upside > 10:
+                sig = ("pos", f"{upside:+.1f}% upside — stock appears undervalued")
+            elif upside < -10:
+                sig = ("neg", f"{upside:+.1f}% downside — stock appears overvalued")
+            else:
+                sig = ("warn", f"{upside:+.1f}% — near fair value")
+            mos = "Yes" if upside > 25 else "No"
+        else:
+            sig = None
+            mos = "N/A"
+
+        _render_card(
+            "DCF \u00b7 3-STAGE MODEL \u00b7 LECTURE 5B",
+            [
+                ("WACC", f"{d.get('wacc', 0)*100:.2f}%"),
+                ("Stage 1 Growth (Yr 1-5)", f"{d.get('near_term_growth', 0)*100:.1f}%"),
+                ("Terminal Growth", f"{d.get('terminal_growth', 0)*100:.1f}%"),
+                ("Trailing FCF", _fmt(d.get("base_fcf"), "currency")),
+                ("Intrinsic Value / Share", f"<strong>{_fmt(iv, 'price')}</strong>"),
+                ("Current Price", _fmt(cp, "price")),
+                ("Upside / Downside", _tag(upside, 10, -10, True, lambda v: f"{v:+.1f}%") if upside is not None else "N/A"),
+                ("Margin of Safety (>25%)", mos),
+            ],
+            signal=sig,
+            note="3-stage DCF: high growth \u2192 fade \u2192 terminal perpetuity. Sensitivity analysis below.",
+        )
+        # Sensitivity table
+        sens = d.get("sensitivity", {})
+        if sens:
+            with st.expander("DCF Sensitivity Table"):
+                rows_data = []
+                for k, v in sens.items():
+                    parts = k.split(",")
+                    wacc_str = parts[0].replace("WACC=", "")
+                    g_str = parts[1].replace("g=", "") if len(parts) > 1 else ""
+                    rows_data.append({"WACC": wacc_str, "Terminal g": g_str, "Value/Share": f"${v:,.2f}"})
+                st.table(pd.DataFrame(rows_data))
+
+
+# ---------------------------------------------------------------------------
+# FS column render
+# ---------------------------------------------------------------------------
+
+def _render_fs_column(fs):
+    """Render all Financial Strategy cards inside a column."""
+
+    # 1. Capital Structure Ratios
+    d = fs.get("capital_structure", {})
+    if d:
+        nd_ebitda = d.get("net_debt_to_ebitda")
+        if nd_ebitda is not None:
+            try:
+                nd_ebitda_f = float(nd_ebitda)
+                sig = ("pos", "Conservative leverage") if nd_ebitda_f < 2 else (("neg", "High leverage — distress risk") if nd_ebitda_f > 4 else ("warn", "Moderate leverage"))
+            except (ValueError, TypeError):
+                sig = None
+        else:
+            sig = None
+
+        nd_cap = d.get("net_debt_to_capital")
+        nd_mkt = None  # compute from net_debt / market_cap if available
+        nd = d.get("net_debt")
+        mc = d.get("market_cap")
+        if nd is not None and mc and mc > 0:
+            nd_mkt = nd / mc
+
+        _render_card(
+            "CAPITAL STRUCTURE RATIOS \u00b7 D1",
+            [
+                ("Total Debt", _fmt(d.get("total_debt"), "currency")),
+                ("Cash & Liquid Assets", _fmt(d.get("total_cash"), "currency")),
+                ("Net Debt", _fmt(nd, "currency")),
+                ("Net Debt / Book Capital", f"{nd_cap*100:.1f}%" if nd_cap else "N/A"),
+                ("Net Debt / Market Capital", f"{nd_mkt*100:.1f}%" if nd_mkt else "N/A"),
+                ("Net Debt / EBITDA", f"{nd_ebitda}x" if nd_ebitda is not None else "N/A"),
+                ("FCF / Total Debt", f"{d.get('fcf_to_debt', 0)*100:.1f}%" if d.get("fcf_to_debt") else "N/A"),
+            ],
+            signal=sig,
+            note="Net Debt = Total Debt \u2212 Cash. Negative net debt = net cash position.",
+        )
+
+    # 2. Implied S&P Credit Rating
+    d = fs.get("credit_rating", {})
+    if d:
+        rating = d.get("implied_rating", "N/A")
+        score = d.get("composite_score")
+        spread = d.get("credit_spread_bps")
+        if score is not None:
+            grade = "Investment Grade" if score >= 4 else "High Yield"
+            grade_color = "#16a34a" if score >= 4 else "#d97706"
+        else:
+            grade = ""
+            grade_color = "#94a3b8"
+
+        rating_html = (
+            f'<div style="text-align:center;margin:0.5rem 0;">'
+            f'<span style="font-size:2.2rem;font-weight:800;color:{MAROON}">{rating}</span>'
+            f'<br><span style="display:inline-block;background:{grade_color};color:white;'
+            f'padding:0.15rem 0.7rem;border-radius:999px;font-size:0.7rem;font-weight:600;'
+            f'margin-top:0.3rem;">{grade}</span></div>'
+        )
+
+        _render_card(
+            "IMPLIED S&P CREDIT RATING \u00b7 D1",
+            [
+                ("Rating", rating_html),
+                ("Composite Score", f"{score}/8" if score is not None else "N/A"),
+                ("Credit Spread", f"{spread} bps" if spread is not None else "N/A"),
+                ("EBIT / Interest", f"{d.get('ebit_to_interest', 'N/A')}x"),
+                ("EBITDA / Interest", f"{d.get('ebitda_to_interest', 'N/A')}x"),
+            ],
+            note="Based on coverage ratios, leverage, and profitability metrics mapped to S&P rating scale.",
+        )
+
+    # 3. Static Trade-Off
+    d = fs.get("static_tradeoff", {})
+    if d:
+        net = d.get("net_benefit_of_debt")
+        assessment = d.get("assessment", "")
+        if net is not None:
+            try:
+                net_f = float(net)
+                sig = ("pos", f"Net benefit of debt is positive — leverage adds value") if net_f > 0 else ("neg", f"Net cost of debt exceeds benefits — overleveraged")
+            except (ValueError, TypeError):
+                sig = ("warn", assessment) if assessment else None
+        else:
+            sig = ("warn", assessment) if assessment else None
+
+        # Score annotations
+        def _sto_row(label, val, direction="good"):
+            fv = _fmt(val, "currency")
+            return (label, fv)
+
+        _render_card(
+            "STATIC TRADE-OFF \u00b7 D2/D3/D4",
+            [
+                ("PV(Tax Shield)", _fmt(d.get("pv_tax_shield"), "currency")),
+                ("PV(Discipline Benefit)", _fmt(d.get("pv_discipline_benefit"), "currency")),
+                ("PV(Distress Cost)", _fmt(d.get("pv_distress_cost"), "currency")),
+                ("Net Score", f"<strong>{_fmt(net, 'currency')}</strong>"),
+            ],
+            signal=sig,
+            note="V\u1d38 = V\u1d41 + PV(tax shield) + PV(discipline) \u2212 PV(distress). Modigliani-Miller with frictions.",
+        )
+
+    # 4. Payout & Cash Policy
+    d = fs.get("payout_policy", {})
+    if d:
+        assessment = d.get("assessment", "")
+        excess = d.get("excess_cash")
+        net_cash = True if excess and float(excess) > 0 else False
+        cash_rev = d.get("cash_as_pct_of_mktcap")
+        if excess is not None:
+            try:
+                sig = ("pos", "Net cash position — financial flexibility") if float(excess) > 0 else ("warn", assessment)
+            except (ValueError, TypeError):
+                sig = ("warn", assessment) if assessment else None
+        else:
+            sig = ("warn", assessment) if assessment else None
+
+        _render_card(
+            "PAYOUT & CASH POLICY \u00b7 D4 (FANUC)",
+            [
+                ("Cash & Liquid Assets", _fmt(d.get("total_cash"), "currency")),
+                ("Cash / Revenue", f"{d.get('cash_as_pct_of_mktcap', 'N/A')}%"),
+                ("Cash / Mkt Cap", f"{cash_rev}%" if cash_rev else "N/A"),
+                ("Net Cash?", '<span class="tag-good">Yes</span>' if net_cash else '<span class="tag-bad">No</span>'),
+                ("Estimated Excess Cash", _fmt(excess, "currency")),
+                ("Annual Tax Drag", _fmt(d.get("tax_drag_annual"), "currency")),
+                ("Dividend Yield", f"{d.get('dividend_yield', 0):.2f}%"),
+            ],
+            signal=sig,
+            note="Excess cash = Cash \u2212 Operating needs. Tax drag = marginal corporate rate \u00d7 excess cash. FANUC case framework.",
+        )
+
+    # 5. Altman Z-Score
+    d = fs.get("altman_z", {})
+    if d and "error" not in d:
+        z = d.get("z_score", 0)
+        zone = d.get("zone", "")
+        if z >= 2.99:
+            z_color = "#16a34a"
+            sig = ("pos", f"Z = {z:.2f} — Safe zone, low bankruptcy risk")
+            badge_bg = "#16a34a"
+        elif z >= 1.81:
+            z_color = "#94a3b8"
+            sig = ("warn", f"Z = {z:.2f} — Grey zone, moderate risk")
+            badge_bg = "#d97706"
+        else:
+            z_color = "#dc2626"
+            sig = ("neg", f"Z = {z:.2f} — Distress zone, high bankruptcy risk")
+            badge_bg = "#dc2626"
+
+        z_big = (
+            f'<div style="text-align:center;margin:0.5rem 0;">'
+            f'<span style="font-size:2.2rem;font-weight:800;color:{z_color}">{z:.2f}</span>'
+            f'<br><span style="display:inline-block;background:{badge_bg};color:white;'
+            f'padding:0.15rem 0.7rem;border-radius:999px;font-size:0.7rem;font-weight:600;'
+            f'margin-top:0.3rem;">{zone}</span></div>'
+        )
+
+        _render_card(
+            "ALTMAN Z-SCORE \u00b7 DISTRESS PREDICTOR",
+            [
+                ("Z-Score", z_big),
+                ("X1: WC/TA (\u00d71.2)", f"{d.get('wc_ta', 0):.4f}"),
+                ("X2: RE/TA (\u00d71.4)", f"{d.get('re_ta', 0):.4f}"),
+                ("X3: EBIT/TA (\u00d73.3)", f"{d.get('ebit_ta', 0):.4f}"),
+                ("X4: MktCap/Liab (\u00d70.6)", f"{d.get('mktcap_liab', 0):.4f}"),
+                ("X5: Rev/TA (\u00d71.0)", f"{d.get('rev_ta', 0):.4f}"),
+            ],
+            signal=sig,
+            note="Z = 1.2X1 + 1.4X2 + 3.3X3 + 0.6X4 + 1.0X5. Safe >2.99, Grey 1.81\u20132.99, Distress <1.81.",
+        )
+
+    # 6. Pecking Order
+    d = fs.get("pecking_order", {})
+    if d:
+        stage = d.get("pecking_order_stage", "N/A")
+        internal = d.get("internal_funding_sufficient")
+        sig = ("pos", f"Stage: {stage} — internal funding sufficient") if internal else ("warn", f"Stage: {stage} — relies on external financing")
+
+        # Score calculation
+        checks = 0
+        total = 5
+        if d.get("internal_funding_sufficient"):
+            checks += 1
+        if d.get("payout_ratio") is not None and d.get("payout_ratio", 100) < 60:
+            checks += 1
+        if d.get("re_to_equity") is not None and d.get("re_to_equity", 0) > 0.3:
+            checks += 1
+        if d.get("debt_level") in ("low", "Low", "moderate", "Moderate"):
+            checks += 1
+        if d.get("debt_to_mktcap") is not None and d.get("debt_to_mktcap", 1) < 0.5:
+            checks += 1
+
+        _render_card(
+            "PECKING ORDER \u00b7 MYERS-MAJLUF 1984",
+            [
+                ("Score", f"<strong>{checks}/{total}</strong>"),
+                ("FCF vs CapEx", f"{_fmt(d.get('free_cash_flow'), 'currency')} vs {_fmt(d.get('capex'), 'currency')}"),
+                ("Internal Funding OK?", '<span class="tag-good">Yes</span>' if internal else '<span class="tag-bad">No</span>'),
+                ("Payout Ratio", f"{d.get('payout_ratio', 0):.1f}%" if d.get("payout_ratio") is not None else "N/A"),
+                ("RE / Equity", f"{d.get('re_to_equity', 0):.4f}" if d.get("re_to_equity") else "N/A"),
+                ("Debt Level", d.get("debt_level", "N/A")),
+                ("P/B", f"{d.get('debt_to_mktcap', 'N/A')}"),
+            ],
+            signal=sig,
+            note="Myers-Majluf (1984): firms prefer internal \u2192 debt \u2192 equity. Higher score = stronger pecking order adherence.",
+        )
+
+
+# ---------------------------------------------------------------------------
+# OM render
+# ---------------------------------------------------------------------------
+
+def _render_om_section(om):
+    """Render Operations Management section in two columns."""
+    _section_bar("CB OPERATIONS MANAGEMENT")
+
+    left, right = st.columns([1, 1])
+
+    with left:
+        # Supply Chain Efficiency
+        d = om.get("supply_chain", {})
+        if d:
+            ccc = d.get("cash_conversion_cycle")
+            if ccc is not None:
+                try:
+                    ccc_f = float(ccc)
+                    sig = ("pos", f"CCC = {ccc_f:.0f} days — efficient cash cycle") if ccc_f < 40 else (("neg", f"CCC = {ccc_f:.0f} days — slow cash conversion") if ccc_f > 80 else ("warn", f"CCC = {ccc_f:.0f} days"))
+                except (ValueError, TypeError):
+                    sig = None
+            else:
+                sig = None
+            _render_card(
+                "SUPPLY CHAIN EFFICIENCY \u00b7 S1/S6/S7",
+                [
+                    ("Cash Conversion Cycle", f"{ccc} days" if ccc is not None else "N/A"),
+                    ("DIO (Days Inventory)", f"{d.get('dio_days', 'N/A')} days"),
+                    ("DSO (Days Sales)", f"{d.get('dso_days', 'N/A')} days"),
+                    ("DPO (Days Payables)", f"{d.get('dpo_days', 'N/A')} days"),
+                    ("Inventory Turnover", f"{d.get('inventory_turnover', 'N/A')}x"),
+                ],
+                signal=sig,
+                note="CCC = DIO + DSO \u2212 DPO. Lower is better — faster cash recovery.",
+            )
+
+        # Process Quality & Lean
+        d = om.get("process_quality", {})
+        if d:
+            gm = d.get("gross_margin")
+            om_val = d.get("operating_margin")
+            gap = d.get("overhead_gap_pct")
+            if gap is not None:
+                try:
+                    gap_f = float(gap)
+                    sig = ("pos", f"Overhead gap {gap_f:.1f}% — lean operations") if gap_f < 20 else (("neg", f"Overhead gap {gap_f:.1f}% — high overhead drag") if gap_f > 40 else ("warn", f"Overhead gap {gap_f:.1f}%"))
+                except (ValueError, TypeError):
+                    sig = None
+            else:
+                sig = None
+            _render_card(
+                "PROCESS QUALITY & LEAN \u00b7 S5 TQM/TPS",
+                [
+                    ("Gross Margin", f"{gm:.2f}%" if gm is not None else "N/A"),
+                    ("Operating Margin", f"{om_val:.2f}%" if om_val is not None else "N/A"),
+                    ("Overhead Gap (GM \u2212 OM)", f"{gap:.2f}%" if gap is not None else "N/A"),
+                    ("ROA", f"{d.get('roa', 'N/A')}%"),
+                    ("Gross Margin Trend", d.get("gross_margin_trend", "N/A")),
+                    ("WC / Revenue", f"{d.get('wc_to_revenue', 'N/A')}%"),
+                ],
+                signal=sig,
+                note="TQM/TPS framework: overhead gap = gross margin \u2212 operating margin. Lower gap = leaner operations.",
+            )
+
+    with right:
+        # Operational Throughput
+        d = om.get("operational_throughput", {})
+        if d:
+            fat = d.get("fixed_asset_turnover")
+            rg = d.get("revenue_growth")
+            if rg is not None:
+                try:
+                    rg_f = float(rg) * 100
+                    sig = ("pos", f"Revenue growth {rg_f:.1f}% — strong throughput") if rg_f > 10 else (("neg", f"Revenue growth {rg_f:.1f}% — declining throughput") if rg_f < 0 else ("warn", f"Revenue growth {rg_f:.1f}%"))
+                except (ValueError, TypeError):
+                    sig = None
+            else:
+                sig = None
+            _render_card(
+                "OPERATIONAL THROUGHPUT \u00b7 S2/S4",
+                [
+                    ("Revenue", _fmt(d.get("revenue"), "currency")),
+                    ("Revenue Growth", f"{rg*100:.1f}%" if rg is not None else "N/A"),
+                    ("Fixed Asset Turnover", f"{fat}x" if fat is not None else "N/A"),
+                    ("CapEx (Current)", _fmt(d.get("capex_current"), "currency")),
+                    ("CapEx Growth", f"{d.get('capex_growth', 0)*100:.1f}%" if d.get("capex_growth") is not None else "N/A"),
+                ],
+                signal=sig,
+                note="Theory of Constraints: throughput = revenue velocity through bottleneck assets.",
+            )
+
+        # Demand Variability & Bullwhip
+        d = om.get("demand_variability", {})
+        if d:
+            bw = d.get("bullwhip_ratio")
+            if bw is not None:
+                try:
+                    bw_f = float(bw)
+                    sig = ("pos", f"Bullwhip ratio {bw_f:.2f} — stable supply chain") if bw_f < 1.0 else (("neg", f"Bullwhip ratio {bw_f:.2f} — significant demand amplification") if bw_f > 1.5 else ("warn", f"Bullwhip ratio {bw_f:.2f}"))
+                except (ValueError, TypeError):
+                    sig = None
+            else:
+                sig = None
+            _render_card(
+                "DEMAND VARIABILITY & BULLWHIP \u00b7 S7/S8",
+                [
+                    ("Revenue CV", f"{d.get('revenue_cv', 'N/A')}"),
+                    ("Revenue Growth", f"{d.get('revenue_growth', 0)*100:.1f}%" if d.get("revenue_growth") is not None else "N/A"),
+                    ("Bullwhip Ratio", _tag(bw, 1.0, 1.5, False, lambda v: f"{v:.3f}") if bw else "N/A"),
+                ],
+                signal=sig,
+                note="Bullwhip = upstream variability / downstream variability. Ratio >1 = demand amplification up the chain.",
+            )
+
+
+# ---------------------------------------------------------------------------
+# CS render
+# ---------------------------------------------------------------------------
+
+def _render_cs_section(cs):
+    """Render Competitive Strategy section in three columns."""
+    _section_bar("CB COMPETITIVE STRATEGY")
+
+    left, mid, right = st.columns([1, 1, 1])
+
+    with left:
+        d = cs.get("competitive_moat", {})
+        if d:
+            total = d.get("total_score", 0)
+            avg = d.get("average_score", 0)
+            width = d.get("moat_width", "N/A")
+            scores = d.get("scores", {})
+
+            if avg >= 6:
+                sig = ("pos", f"Wide moat ({width}) — durable competitive advantage")
+            elif avg >= 4:
+                sig = ("warn", f"Narrow moat ({width}) — some competitive protection")
+            else:
+                sig = ("neg", f"No moat ({width}) — vulnerable to competition")
+
+            score_rows = [(k.replace("_", " ").title(), f"{v}/2") for k, v in scores.items()]
+
+            _render_card(
+                "COMPETITIVE MOAT \u00b7 SESSION 2/6",
+                [
+                    ("Moat Score", f"<strong>{total}/10</strong>"),
+                    ("Moat Width", f"<strong>{width}</strong>"),
+                    *score_rows,
+                    ("Gross Margin", f"{d.get('gross_margin', 0):.1f}%"),
+                    ("Operating Margin", f"{d.get('operating_margin', 0):.1f}%"),
+                    ("R&D Intensity", f"{d.get('rd_intensity_pct', 0):.1f}%"),
+                    ("ROE", f"{d.get('roe', 'N/A')}%"),
+                ],
+                signal=sig,
+                note="Porter's Five Forces: switching costs, network effects, cost advantage, intangible assets, efficient scale.",
+            )
+
+    with mid:
+        d = cs.get("disruption_risk", {})
+        if d:
+            risk_score = d.get("disruption_risk_score", 0)
+            risk_level = d.get("risk_level", "N/A")
+
+            if risk_score <= 3:
+                r_color = "#16a34a"
+                sig = ("pos", f"Low disruption risk ({risk_score}/10)")
+            elif risk_score <= 6:
+                r_color = "#d97706"
+                sig = ("warn", f"Moderate disruption risk ({risk_score}/10)")
+            else:
+                r_color = "#dc2626"
+                sig = ("neg", f"High disruption risk ({risk_score}/10)")
+
+            risk_big = (
+                f'<div style="text-align:center;margin:0.5rem 0;">'
+                f'<span style="font-size:1.8rem;font-weight:800;color:{r_color}">{risk_level}</span>'
+                f'<br><span style="font-size:0.8rem;color:#94a3b8">{risk_score}/10</span></div>'
+            )
+
+            _render_card(
+                "DISRUPTION RISK \u00b7 SESSION 7",
+                [
+                    ("Risk Level", risk_big),
+                    ("Innovation Type", d.get("innovation_type", "N/A")),
+                    ("R&D Intensity", f"{d.get('rd_intensity_pct', 0):.1f}%"),
+                    ("Revenue Growth", f"{d.get('revenue_growth', 'N/A')}%"),
+                    ("Gross Margin Trend", d.get("gross_margin_trend", "N/A")),
+                ],
+                signal=sig,
+                note="Henderson & Clark framework: architectural vs modular innovation. Higher R&D intensity may reduce disruption risk.",
+            )
+
+    with right:
+        d = cs.get("market_position", {})
+        if d:
+            position = d.get("market_position", "N/A")
+            detail = d.get("position_detail", "")
+            cap_tier = d.get("cap_tier", "N/A")
+
+            # Badge color by position
+            pos_lower = str(position).lower()
+            if "leader" in pos_lower or "dominant" in pos_lower:
+                p_color = "#16a34a"
+                sig = ("pos", f"{position} — strong market positioning")
+            elif "challenger" in pos_lower or "contender" in pos_lower:
+                p_color = "#d97706"
+                sig = ("warn", f"{position} — competitive but not dominant")
+            else:
+                p_color = "#94a3b8"
+                sig = ("warn", f"{position}")
+
+            pos_badge = (
+                f'<div style="text-align:center;margin:0.5rem 0;">'
+                f'<span style="display:inline-block;background:{p_color};color:white;'
+                f'padding:0.3rem 1rem;border-radius:999px;font-size:0.85rem;font-weight:700;">'
+                f'{position}</span></div>'
+            )
+
+            _render_card(
+                "MARKET POSITION \u00b7 SESSION 2/3",
+                [
+                    ("Position", pos_badge),
+                    ("Detail", detail),
+                    ("Cap Tier", cap_tier),
+                    ("Risk Profile", d.get("risk_profile", "N/A")),
+                    ("Gross Margin", f"{d.get('gross_margin_pct', 0):.1f}%"),
+                    ("Operating Margin", f"{d.get('operating_margin_pct', 0):.1f}%"),
+                    ("Revenue Growth", f"{d.get('revenue_growth_pct', 'N/A')}%"),
+                    ("ROE", f"{d.get('roe_pct', 'N/A')}%"),
+                    ("Beta", f"{d.get('beta', 'N/A')}"),
+                ],
+                signal=sig,
+                note="Market position derived from cap tier, margins, growth, and risk profile.",
+            )
+
+
+# ===================================================================
+# PAGE 2: CB ANALYSIS — Main page function
 # ===================================================================
 
 def page_cb_analysis():
@@ -411,30 +1354,32 @@ def page_cb_analysis():
         low52 = info.get("fiftyTwoWeekLow")
         description = info.get("longBusinessSummary", "")
 
+        # Company header with pill tags
         st.markdown(f"""
         <div class="company-header">
             <h1>{name} ({ticker})</h1>
-            <div class="sector">{sector} | {industry}</div>
+            <div class="sector" style="margin-top:0.4rem;">
+                <span class="pill">{sector}</span>
+                <span class="pill">{industry}</span>
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
-        # Key stats row
-        c1, c2, c3, c4, c5, c6 = st.columns(6)
+        # 8-metric stats row
+        c1, c2, c3, c4, c5, c6, c7, c8 = st.columns(8)
         with c1:
             st.markdown(f'<div class="metric-card"><h4>Price</h4><div class="value">{_fmt(price, "price")}</div></div>', unsafe_allow_html=True)
         with c2:
             st.markdown(f'<div class="metric-card"><h4>Market Cap</h4><div class="value">{_fmt(mkt_cap, "currency")}</div></div>', unsafe_allow_html=True)
         with c3:
-            st.markdown(f'<div class="metric-card"><h4>PE Ratio</h4><div class="value">{_fmt(pe)}</div></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="metric-card"><h4>P/E</h4><div class="value">{_fmt(pe)}</div></div>', unsafe_allow_html=True)
         with c4:
-            st.markdown(f'<div class="metric-card"><h4>Forward PE</h4><div class="value">{_fmt(fwd_pe)}</div></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="metric-card"><h4>Fwd P/E</h4><div class="value">{_fmt(fwd_pe)}</div></div>', unsafe_allow_html=True)
         with c5:
             st.markdown(f'<div class="metric-card"><h4>EPS</h4><div class="value">{_fmt(eps_val, "price")}</div></div>', unsafe_allow_html=True)
         with c6:
             div_display = f"{div_yield*100:.2f}%" if div_yield else "N/A"
             st.markdown(f'<div class="metric-card"><h4>Div Yield</h4><div class="value">{div_display}</div></div>', unsafe_allow_html=True)
-
-        c7, c8 = st.columns(2)
         with c7:
             st.markdown(f'<div class="metric-card"><h4>52W High</h4><div class="value">{_fmt(high52, "price")}</div></div>', unsafe_allow_html=True)
         with c8:
@@ -444,26 +1389,21 @@ def page_cb_analysis():
             with st.expander("Company Description"):
                 st.write(description)
 
-        st.divider()
-
         # --- Run all 4 analyses ---
         booth = _cached_booth(ticker)
         fs = _cached_fs(ticker)
         om = _cached_om(ticker)
         cs = _cached_cs(ticker)
 
-        # ====== CORPORATE FINANCE (CF) ======
-        st.markdown(f'## Corporate Finance (CF)')
+        # ====== EXECUTIVE SUMMARY ======
+        _section_bar("EXECUTIVE SUMMARY")
+        _render_executive_summary(booth, fs)
 
-        _render_cf(booth)
-
-        # ====== FINANCIAL STRATEGY (FS) ======
-        st.markdown(f'## Financial Strategy (FS)')
-
-        _render_fs(fs)
-
-        # --- AI Investment Thesis (CF + FS) ---
-        st.markdown("### AI Investment Thesis")
+        # ====== INVESTMENT THESIS AI ======
+        st.markdown(
+            '<div class="ai-header">INVESTMENT THESIS \u00b7 AI ANALYSIS \u00b7 POWERED BY CLAUDE</div>',
+            unsafe_allow_html=True,
+        )
         with st.spinner("Generating investment thesis..."):
             thesis = _get_ai_narrative(
                 "You are an equity research analyst trained at Chicago Booth. "
@@ -472,16 +1412,33 @@ def page_cb_analysis():
                 {"corporate_finance": booth, "financial_strategy": fs},
             )
         if thesis:
-            st.markdown(f'<div class="ai-narrative">{_md(thesis)}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="ai-body">{_md(thesis)}</div>', unsafe_allow_html=True)
 
-        st.divider()
+        # ====== TWO-COLUMN CF | FS LAYOUT ======
+        cf_col, fs_col = st.columns([1, 1])
 
-        # ====== OPERATIONS MANAGEMENT (OM) ======
-        st.markdown(f'## Operations Management (OM)')
+        with cf_col:
+            st.markdown('<div class="section-bar">CB CORPORATE FINANCE</div>', unsafe_allow_html=True)
+            _render_cf_column(booth)
 
-        _render_om(om)
+        with fs_col:
+            st.markdown('<div class="section-bar">CB FINANCIAL STRATEGY</div>', unsafe_allow_html=True)
+            _render_fs_column(fs)
 
-        st.markdown("### AI Operations Narrative")
+        # ====== CF+FS THESIS AI (full-width) ======
+        _ai_block(
+            "CF + FS THESIS \u00b7 AI ANALYSIS \u00b7 POWERED BY CLAUDE",
+            _md(thesis) if thesis else "<em>No thesis generated.</em>",
+        )
+
+        # ====== OPERATIONS MANAGEMENT ======
+        _render_om_section(om)
+
+        # OM Narrative AI
+        st.markdown(
+            '<div class="ai-header">OPERATIONS MANAGEMENT \u00b7 AI NARRATIVE \u00b7 POWERED BY CLAUDE</div>',
+            unsafe_allow_html=True,
+        )
         with st.spinner("Generating operations narrative..."):
             om_narrative = _get_ai_narrative(
                 "You are an operations management consultant trained at Chicago Booth. "
@@ -490,16 +1447,16 @@ def page_cb_analysis():
                 om,
             )
         if om_narrative:
-            st.markdown(f'<div class="ai-narrative">{_md(om_narrative)}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="ai-body">{_md(om_narrative)}</div>', unsafe_allow_html=True)
 
-        st.divider()
+        # ====== COMPETITIVE STRATEGY ======
+        _render_cs_section(cs)
 
-        # ====== COMPETITIVE STRATEGY (CS) ======
-        st.markdown(f'## Competitive Strategy (CS)')
-
-        _render_cs(cs)
-
-        st.markdown("### AI Strategy Narrative")
+        # CS Narrative AI
+        st.markdown(
+            '<div class="ai-header">COMPETITIVE STRATEGY \u00b7 AI NARRATIVE \u00b7 POWERED BY CLAUDE</div>',
+            unsafe_allow_html=True,
+        )
         with st.spinner("Generating strategy narrative..."):
             cs_narrative = _get_ai_narrative(
                 "You are a competitive strategy analyst trained at Chicago Booth. "
@@ -508,7 +1465,7 @@ def page_cb_analysis():
                 cs,
             )
         if cs_narrative:
-            st.markdown(f'<div class="ai-narrative">{_md(cs_narrative)}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="ai-body">{_md(cs_narrative)}</div>', unsafe_allow_html=True)
 
         # --- PDF Download ---
         st.divider()
@@ -533,272 +1490,6 @@ def page_cb_analysis():
             )
         except Exception as e:
             st.warning(f"PDF generation unavailable: {e}")
-
-
-# ---------------------------------------------------------------------------
-# Render helpers for each framework
-# ---------------------------------------------------------------------------
-
-def _render_card(title: str, rows: list):
-    """Render a booth-card with table rows. rows = [(label, value), ...]."""
-    table_rows = "".join(f"<tr><td>{label}</td><td>{val}</td></tr>" for label, val in rows if val is not None)
-    if not table_rows:
-        return
-    html = f'<div class="booth-card"><h3>{title}</h3><table>{table_rows}</table></div>'
-    st.markdown(html, unsafe_allow_html=True)
-
-
-def _tag(val, good_threshold, bad_threshold, higher_is_better=True, fmt_fn=None):
-    """Return colored HTML tag."""
-    if val is None:
-        return "N/A"
-    display = fmt_fn(val) if fmt_fn else f"{val}"
-    if higher_is_better:
-        if val >= good_threshold:
-            return f'<span class="tag-good">{display}</span>'
-        if val <= bad_threshold:
-            return f'<span class="tag-bad">{display}</span>'
-    else:
-        if val <= good_threshold:
-            return f'<span class="tag-good">{display}</span>'
-        if val >= bad_threshold:
-            return f'<span class="tag-bad">{display}</span>'
-    return f'<span class="tag-warn">{display}</span>'
-
-
-def _render_cf(booth: dict):
-    # CAPM
-    d = booth.get("capm_alpha", {})
-    if d and "error" not in d:
-        _render_card("CAPM & Jensen's Alpha (Lecture 2B)", [
-            ("Beta", f"{d.get('beta', 'N/A')}"),
-            ("Risk-Free Rate", f"{d.get('risk_free_rate', 0)*100:.2f}%"),
-            ("Expected Return (CAPM)", f"{d.get('expected_return', 0)*100:.2f}%"),
-            ("Actual Annualized Return", f"{d.get('actual_annualized_return', 0)*100:.2f}%"),
-            ("Jensen's Alpha", _tag(d.get('jensens_alpha', 0)*100, 2, -2, True, lambda v: f"{v:.2f}%")),
-            ("R-squared", f"{d.get('r_squared', 0):.4f}"),
-        ])
-
-    # Multiples
-    d = booth.get("valuation_multiples", {})
-    if d:
-        _render_card("Valuation Multiples (Lecture 5B)", [
-            ("Sector", d.get("sector", "N/A")),
-            ("PE Ratio", f"{d.get('pe_ratio', 'N/A')} (Median: {d.get('pe_sector_median', 'N/A')}) — {d.get('pe_vs_sector', 'N/A')}"),
-            ("EV/EBITDA", f"{d.get('ev_ebitda', 'N/A')} (Median: {d.get('ev_ebitda_sector_median', 'N/A')}) — {d.get('ev_ebitda_vs_sector', 'N/A')}"),
-            ("P/B Ratio", f"{d.get('pb_ratio', 'N/A')} (Median: {d.get('pb_sector_median', 'N/A')}) — {d.get('pb_vs_sector', 'N/A')}"),
-            ("P/S Ratio", f"{d.get('ps_ratio', 'N/A')} (Median: {d.get('ps_sector_median', 'N/A')}) — {d.get('ps_vs_sector', 'N/A')}"),
-        ])
-
-    # WACC
-    d = booth.get("wacc", {})
-    if d and "error" not in d:
-        _render_card("WACC (Lecture 4B)", [
-            ("WACC", f"{d.get('wacc', 0)*100:.2f}%"),
-            ("Cost of Equity", f"{d.get('cost_of_equity', 0)*100:.2f}%"),
-            ("Cost of Debt", f"{d.get('cost_of_debt', 0)*100:.2f}%"),
-            ("Equity Weight", f"{d.get('equity_weight', 0)*100:.1f}%"),
-            ("Debt Weight", f"{d.get('debt_weight', 0)*100:.1f}%"),
-            ("Beta", f"{d.get('beta', 'N/A')}"),
-        ])
-
-    # FCF
-    d = booth.get("free_cash_flow", {})
-    if d:
-        _render_card("Free Cash Flow (Lectures 4A/4B)", [
-            ("Free Cash Flow", _fmt(d.get("free_cash_flow"), "currency")),
-            ("Operating Cash Flow", _fmt(d.get("operating_cash_flow"), "currency")),
-            ("FCF Yield", _tag(d.get("fcf_yield_pct"), 5, 0, True, lambda v: f"{v:.2f}%") if d.get("fcf_yield_pct") else "N/A"),
-            ("FCF Margin", f"{d.get('fcf_margin_pct', 'N/A')}%" if d.get("fcf_margin_pct") else "N/A"),
-        ])
-
-    # DCF
-    d = booth.get("dcf_model", {})
-    if d and "error" not in d:
-        _render_card("DCF 3-Stage Model (Lecture 5B)", [
-            ("Intrinsic Value / Share", _fmt(d.get("intrinsic_value_per_share"), "price")),
-            ("Current Price", _fmt(d.get("current_price"), "price")),
-            ("Upside / Downside", _tag(d.get("upside_pct"), 10, -10, True, lambda v: f"{v:+.1f}%") if d.get("upside_pct") is not None else "N/A"),
-            ("WACC Used", f"{d.get('wacc', 0)*100:.2f}%"),
-            ("Near-term Growth (Yr 1-5)", f"{d.get('near_term_growth', 0)*100:.1f}%"),
-            ("Fade Growth (Yr 6-10)", f"{d.get('fade_growth', 0)*100:.1f}%"),
-            ("Terminal Growth", f"{d.get('terminal_growth', 0)*100:.1f}%"),
-        ])
-        # Sensitivity table
-        sens = d.get("sensitivity", {})
-        if sens:
-            with st.expander("DCF Sensitivity Table"):
-                rows_data = []
-                for k, v in sens.items():
-                    parts = k.split(",")
-                    wacc_str = parts[0].replace("WACC=", "")
-                    g_str = parts[1].replace("g=", "") if len(parts) > 1 else ""
-                    rows_data.append({"WACC": wacc_str, "Terminal g": g_str, "Value/Share": f"${v:,.2f}"})
-                st.table(pd.DataFrame(rows_data))
-
-
-def _render_fs(fs: dict):
-    # Capital Structure
-    d = fs.get("capital_structure", {})
-    if d:
-        _render_card("Capital Structure (D1)", [
-            ("Total Debt", _fmt(d.get("total_debt"), "currency")),
-            ("Total Cash", _fmt(d.get("total_cash"), "currency")),
-            ("Net Debt", _fmt(d.get("net_debt"), "currency")),
-            ("Net Debt / Capital", f"{d.get('net_debt_to_capital', 0)*100:.1f}%" if d.get("net_debt_to_capital") else "N/A"),
-            ("Net Debt / EBITDA", f"{d.get('net_debt_to_ebitda', 'N/A')}x"),
-            ("FCF / Debt", f"{d.get('fcf_to_debt', 0)*100:.1f}%" if d.get("fcf_to_debt") else "N/A"),
-        ])
-
-    # Credit Rating
-    d = fs.get("credit_rating", {})
-    if d:
-        _render_card("Implied S&P Credit Rating (D1)", [
-            ("Implied Rating", f"<strong>{d.get('implied_rating', 'N/A')}</strong>"),
-            ("Composite Score", f"{d.get('composite_score', 'N/A')} / 8"),
-            ("Credit Spread", f"{d.get('credit_spread_bps', 'N/A')} bps"),
-            ("EBIT / Interest", f"{d.get('ebit_to_interest', 'N/A')}x"),
-            ("EBITDA / Interest", f"{d.get('ebitda_to_interest', 'N/A')}x"),
-        ])
-
-    # Static Trade-Off
-    d = fs.get("static_tradeoff", {})
-    if d:
-        _render_card("Static Trade-Off (D2/D3/D4)", [
-            ("PV Tax Shield", _fmt(d.get("pv_tax_shield"), "currency")),
-            ("PV Discipline Benefit", _fmt(d.get("pv_discipline_benefit"), "currency")),
-            ("PV Distress Cost", _fmt(d.get("pv_distress_cost"), "currency")),
-            ("Net Benefit of Debt", _fmt(d.get("net_benefit_of_debt"), "currency")),
-            ("Assessment", f"<strong>{d.get('assessment', 'N/A')}</strong>"),
-        ])
-
-    # Payout Policy
-    d = fs.get("payout_policy", {})
-    if d:
-        _render_card("Payout & Cash Policy (D4)", [
-            ("Excess Cash", _fmt(d.get("excess_cash"), "currency")),
-            ("Tax Drag (Annual)", _fmt(d.get("tax_drag_annual"), "currency")),
-            ("Dividend Yield", f"{d.get('dividend_yield', 0):.2f}%"),
-            ("Payout Ratio", f"{d.get('payout_ratio', 0):.1f}%"),
-            ("Cash as % of Mkt Cap", f"{d.get('cash_as_pct_of_mktcap', 'N/A')}%"),
-            ("Assessment", f"<strong>{d.get('assessment', 'N/A')}</strong>"),
-        ])
-
-    # Altman Z
-    d = fs.get("altman_z", {})
-    if d and "error" not in d:
-        z = d.get("z_score", 0)
-        zone = d.get("zone", "")
-        z_tag = _tag(z, 2.99, 1.81, True, lambda v: f"{v:.3f}")
-        _render_card("Altman Z-Score", [
-            ("Z-Score", f"{z_tag} — {zone}"),
-            ("WC/TA (×1.2)", f"{d.get('wc_ta', 0):.4f}"),
-            ("RE/TA (×1.4)", f"{d.get('re_ta', 0):.4f}"),
-            ("EBIT/TA (×3.3)", f"{d.get('ebit_ta', 0):.4f}"),
-            ("MktCap/Liabilities (×0.6)", f"{d.get('mktcap_liab', 0):.4f}"),
-            ("Revenue/TA (×1.0)", f"{d.get('rev_ta', 0):.4f}"),
-        ])
-
-    # Pecking Order
-    d = fs.get("pecking_order", {})
-    if d:
-        _render_card("Pecking Order (Myers-Majluf 1984)", [
-            ("Stage", f"<strong>{d.get('pecking_order_stage', 'N/A')}</strong>"),
-            ("FCF", _fmt(d.get("free_cash_flow"), "currency")),
-            ("CapEx", _fmt(d.get("capex"), "currency")),
-            ("Internal Funding Sufficient", "Yes" if d.get("internal_funding_sufficient") else "No"),
-            ("Debt Level", d.get("debt_level", "N/A")),
-            ("RE / Equity", f"{d.get('re_to_equity', 0):.4f}" if d.get("re_to_equity") else "N/A"),
-        ])
-
-
-def _render_om(om: dict):
-    # Supply Chain
-    d = om.get("supply_chain", {})
-    if d:
-        _render_card("Supply Chain Efficiency (S1/S6/S7)", [
-            ("Cash Conversion Cycle", _tag(d.get("cash_conversion_cycle"), 30, 90, False, lambda v: f"{v:.1f} days") if d.get("cash_conversion_cycle") else "N/A"),
-            ("Days Inventory (DIO)", f"{d.get('dio_days', 'N/A')} days"),
-            ("Days Sales (DSO)", f"{d.get('dso_days', 'N/A')} days"),
-            ("Days Payables (DPO)", f"{d.get('dpo_days', 'N/A')} days"),
-            ("Inventory Turnover", f"{d.get('inventory_turnover', 'N/A')}x"),
-            ("Assessment", f"<strong>{d.get('assessment', 'N/A')}</strong>"),
-        ])
-
-    # Throughput
-    d = om.get("operational_throughput", {})
-    if d:
-        _render_card("Operational Throughput (S2/S4)", [
-            ("Fixed Asset Turnover", f"{d.get('fixed_asset_turnover', 'N/A')}x"),
-            ("Revenue Growth", f"{d.get('revenue_growth', 0)*100:.1f}%" if d.get("revenue_growth") else "N/A"),
-            ("CapEx (Current)", _fmt(d.get("capex_current"), "currency")),
-            ("CapEx Growth", f"{d.get('capex_growth', 0)*100:.1f}%" if d.get("capex_growth") is not None else "N/A"),
-            ("Assessment", f"<strong>{d.get('assessment', 'N/A')}</strong>"),
-        ])
-
-    # Process Quality
-    d = om.get("process_quality", {})
-    if d:
-        _render_card("Process Quality & Lean (S5 TQM/TPS)", [
-            ("Gross Margin", f"{d.get('gross_margin', 0):.2f}%"),
-            ("Operating Margin", f"{d.get('operating_margin', 0):.2f}%"),
-            ("Overhead Gap (GM − OM)", f"{d.get('overhead_gap_pct', 0):.2f}%"),
-            ("ROA", f"{d.get('roa', 'N/A')}%"),
-            ("Gross Margin Trend", d.get("gross_margin_trend", "N/A")),
-            ("WC / Revenue", f"{d.get('wc_to_revenue', 'N/A')}%"),
-            ("Assessment", f"<strong>{d.get('assessment', 'N/A')}</strong>"),
-        ])
-
-    # Demand Variability
-    d = om.get("demand_variability", {})
-    if d:
-        _render_card("Demand Variability & Bullwhip (S7/S8)", [
-            ("Revenue CV", f"{d.get('revenue_cv', 'N/A')}"),
-            ("Inventory Growth", f"{d.get('inventory_growth', 0)*100:.1f}%" if d.get("inventory_growth") is not None else "N/A"),
-            ("Revenue Growth", f"{d.get('revenue_growth', 0)*100:.1f}%" if d.get("revenue_growth") is not None else "N/A"),
-            ("Bullwhip Ratio", _tag(d.get("bullwhip_ratio"), 1.0, 1.5, False, lambda v: f"{v:.3f}") if d.get("bullwhip_ratio") else "N/A"),
-            ("Assessment", f"<strong>{d.get('assessment', 'N/A')}</strong>"),
-        ])
-
-
-def _render_cs(cs: dict):
-    # Moat
-    d = cs.get("competitive_moat", {})
-    if d:
-        scores = d.get("scores", {})
-        score_rows = [(k.replace("_", " ").title(), f"{v}/10") for k, v in scores.items()]
-        _render_card("Competitive Moat (Session 2/6)", [
-            ("Moat Width", f"<strong>{d.get('moat_width', 'N/A')}</strong> (Avg: {d.get('average_score', 0)}/10)"),
-            *score_rows,
-            ("Gross Margin", f"{d.get('gross_margin', 0):.1f}%"),
-            ("R&D Intensity", f"{d.get('rd_intensity_pct', 0):.1f}%"),
-        ])
-
-    # Disruption Risk
-    d = cs.get("disruption_risk", {})
-    if d:
-        risk = d.get("disruption_risk_score", 0)
-        _render_card("Disruption Risk (Session 7)", [
-            ("Risk Score", _tag(risk, 3, 7, False, lambda v: f"{v}/10")),
-            ("Risk Level", f"<strong>{d.get('risk_level', 'N/A')}</strong>"),
-            ("Innovation Type", d.get("innovation_type", "N/A")),
-            ("R&D Intensity", f"{d.get('rd_intensity_pct', 0):.1f}%"),
-            ("Revenue Growth", f"{d.get('revenue_growth', 'N/A')}%"),
-            ("Gross Margin Trend", d.get("gross_margin_trend", "N/A")),
-        ])
-
-    # Market Position
-    d = cs.get("market_position", {})
-    if d:
-        _render_card("Market Position (Session 2/3)", [
-            ("Position", f"<strong>{d.get('market_position', 'N/A')}</strong>"),
-            ("Detail", d.get("position_detail", "")),
-            ("Cap Tier", d.get("cap_tier", "N/A")),
-            ("Risk Profile", d.get("risk_profile", "N/A")),
-            ("Operating Margin", f"{d.get('operating_margin_pct', 0):.1f}%"),
-            ("ROE", f"{d.get('roe_pct', 'N/A')}%"),
-            ("Beta", f"{d.get('beta', 'N/A')}"),
-        ])
 
 
 # ===================================================================
