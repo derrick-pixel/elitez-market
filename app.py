@@ -1480,8 +1480,8 @@ def page_cb_analysis():
     with st.spinner(f"Analyzing {ticker}..."):
         # --- Company Header ---
         info = get_stock_info(ticker)
-        if not info:
-            st.error(f"Could not fetch data for {ticker}. Please check the ticker symbol.")
+        if not info or (not info.get("currentPrice") and not info.get("regularMarketPrice") and not info.get("shortName")):
+            st.error(f"Could not fetch data for {ticker}. yfinance may be rate-limited on Streamlit Cloud. Try again in a few seconds, or add FINNHUB_KEY to secrets for fallback data.")
             return
 
         name = info.get("longName") or info.get("shortName") or ticker

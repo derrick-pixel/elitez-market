@@ -8,6 +8,7 @@ FINNHUB_KEY is set in the environment.
 
 import io
 import os
+import time
 import logging
 from typing import Optional
 
@@ -21,35 +22,55 @@ from config import DEFAULT_PERIOD, DEFAULT_INTERVAL
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Primary: yfinance
+# Primary: yfinance (with retry)
 # ---------------------------------------------------------------------------
 
 def _fetch_yfinance(ticker: str) -> Optional[StockData]:
-    """Fetch all data from yfinance in a single Ticker object."""
-    try:
-        t = yf.Ticker(ticker)
-        info = t.info or {}
-        if not info or info.get("regularMarketPrice") is None:
-            # yfinance sometimes returns an empty dict on rate-limit
-            if not info.get("currentPrice"):
+    """Fetch all data from yfinance. Retries once on failure (rate-limit recovery)."""
+    for attempt in range(2):
+        try:
+            t = yf.Ticker(ticker)
+            info = t.info or {}
+
+            # yfinance returns partial/empty info on rate-limit
+            has_price = (
+                info.get("currentPrice")
+                or info.get("regularMarketPrice")
+                or info.get("previousClose")
+            )
+            if not has_price and not info.get("shortName"):
+                if attempt == 0:
+                    logger.info("yfinance returned empty info for %s, retrying...", ticker)
+                    time.sleep(2)
+                    continue
                 return None
 
-        hist = t.history(period=DEFAULT_PERIOD, interval=DEFAULT_INTERVAL)
-        if hist is None or hist.empty:
-            return None
+            hist = t.history(period=DEFAULT_PERIOD, interval=DEFAULT_INTERVAL)
+            if hist is None or hist.empty:
+                if attempt == 0:
+                    time.sleep(2)
+                    continue
+                # Still return with info if we have it — analytics can work without history
+                if has_price:
+                    return StockData(ticker=ticker.upper(), info=info)
+                return None
 
-        return StockData(
-            ticker=ticker.upper(),
-            info=info,
-            history=hist,
-            balance_sheet=_safe_df(t, "balance_sheet"),
-            financials=_safe_df(t, "financials"),
-            quarterly_balance_sheet=_safe_df(t, "quarterly_balance_sheet"),
-            cash_flow=_safe_df(t, "cashflow"),
-        )
-    except Exception as e:
-        logger.warning("yfinance failed for %s: %s", ticker, e)
-        return None
+            return StockData(
+                ticker=ticker.upper(),
+                info=info,
+                history=hist,
+                balance_sheet=_safe_df(t, "balance_sheet"),
+                financials=_safe_df(t, "financials"),
+                quarterly_balance_sheet=_safe_df(t, "quarterly_balance_sheet"),
+                cash_flow=_safe_df(t, "cashflow"),
+            )
+        except Exception as e:
+            logger.warning("yfinance attempt %d failed for %s: %s", attempt + 1, ticker, e)
+            if attempt == 0:
+                time.sleep(2)
+                continue
+            return None
+    return None
 
 
 def _safe_df(ticker_obj, attr: str) -> Optional[pd.DataFrame]:
