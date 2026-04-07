@@ -235,27 +235,30 @@ def _build_cover(ticker: str, info: dict, today_str: str) -> str:
     stats_html = f"""
     <table style="width:100%; border-collapse:collapse; margin:20pt 0;">
       <tr>
-        <td style="width:14%; padding:8pt 4pt; text-align:center; border:1px solid {BORDER_COLOR};">
+        <td style="width:12.5%; padding:8pt 4pt; text-align:center; border:1px solid {BORDER_COLOR};">
           <div style="font-size:7pt; color:{GREY}; text-transform:uppercase; letter-spacing:0.5pt;">PRICE</div>
           <div style="font-size:13pt; font-weight:700;">{_fmt(price, "price")}</div></td>
-        <td style="width:14%; padding:8pt 4pt; text-align:center; border:1px solid {BORDER_COLOR};">
+        <td style="width:12.5%; padding:8pt 4pt; text-align:center; border:1px solid {BORDER_COLOR};">
           <div style="font-size:7pt; color:{GREY}; text-transform:uppercase; letter-spacing:0.5pt;">MARKET CAP</div>
           <div style="font-size:13pt; font-weight:700;">{_fmt(mkt_cap, "currency")}</div></td>
-        <td style="width:14%; padding:8pt 4pt; text-align:center; border:1px solid {BORDER_COLOR};">
+        <td style="width:12.5%; padding:8pt 4pt; text-align:center; border:1px solid {BORDER_COLOR};">
           <div style="font-size:7pt; color:{GREY}; text-transform:uppercase; letter-spacing:0.5pt;">P/E (TTM)</div>
           <div style="font-size:13pt; font-weight:700;">{_fmt(pe)}</div></td>
-        <td style="width:14%; padding:8pt 4pt; text-align:center; border:1px solid {BORDER_COLOR};">
+        <td style="width:12.5%; padding:8pt 4pt; text-align:center; border:1px solid {BORDER_COLOR};">
           <div style="font-size:7pt; color:{GREY}; text-transform:uppercase; letter-spacing:0.5pt;">FWD P/E</div>
           <div style="font-size:13pt; font-weight:700;">{_fmt(fwd_pe)}</div></td>
-        <td style="width:14%; padding:8pt 4pt; text-align:center; border:1px solid {BORDER_COLOR};">
+        <td style="width:12.5%; padding:8pt 4pt; text-align:center; border:1px solid {BORDER_COLOR};">
           <div style="font-size:7pt; color:{GREY}; text-transform:uppercase; letter-spacing:0.5pt;">EPS</div>
           <div style="font-size:13pt; font-weight:700;">{_fmt(eps_val, "price")}</div></td>
-        <td style="width:14%; padding:8pt 4pt; text-align:center; border:1px solid {BORDER_COLOR};">
+        <td style="width:12.5%; padding:8pt 4pt; text-align:center; border:1px solid {BORDER_COLOR};">
           <div style="font-size:7pt; color:{GREY}; text-transform:uppercase; letter-spacing:0.5pt;">DIV YIELD</div>
           <div style="font-size:13pt; font-weight:700;">{div_display}</div></td>
-        <td style="width:14%; padding:8pt 4pt; text-align:center; border:1px solid {BORDER_COLOR};">
+        <td style="width:12.5%; padding:8pt 4pt; text-align:center; border:1px solid {BORDER_COLOR};">
           <div style="font-size:7pt; color:{GREY}; text-transform:uppercase; letter-spacing:0.5pt;">52W HIGH</div>
           <div style="font-size:13pt; font-weight:700;">{_fmt(high52, "price")}</div></td>
+        <td style="width:12.5%; padding:8pt 4pt; text-align:center; border:1px solid {BORDER_COLOR};">
+          <div style="font-size:7pt; color:{GREY}; text-transform:uppercase; letter-spacing:0.5pt;">52W LOW</div>
+          <div style="font-size:13pt; font-weight:700;">{_fmt(low52, "price")}</div></td>
       </tr>
     </table>
     """
@@ -289,7 +292,7 @@ def _build_cover(ticker: str, info: dict, today_str: str) -> str:
       <div style="height:80pt;"></div>
 
       <!-- Ticker -->
-      <div style="text-align:center;">
+      <div style="text-align:left;">
         <div style="font-size:42pt; font-weight:700; color:{DARK_TEXT}; letter-spacing:3pt;">{ticker}</div>
         <div style="font-size:14pt; color:#475569; margin-top:4pt;">{name}</div>
         <div style="margin-top:8pt;">
@@ -313,9 +316,9 @@ def _build_cover(ticker: str, info: dict, today_str: str) -> str:
           <td style="font-size:8pt; color:{GREY}; vertical-align:top;">
             <div>Report Date: {today_str}</div>
             <div style="margin-top:2pt;">Analysis powered by CB frameworks (CF &middot; FS &middot; OM)</div>
-            <div style="margin-top:4pt; display:inline-block; background:{MAROON}; color:white;
-                        padding:2pt 8pt; border-radius:3px; font-size:7pt; font-weight:600;
-                        letter-spacing:0.5pt;">CONFIDENTIAL</div>
+            <div style="margin-top:4pt; display:inline-block; border:1px solid #94a3b8; color:#94a3b8;
+                        background:none; padding:2pt 10pt; border-radius:3px; font-size:7pt; font-weight:600;
+                        letter-spacing:1pt; text-transform:uppercase;">CONFIDENTIAL</div>
           </td>
           <td style="text-align:right; font-size:8pt; color:{GREY}; vertical-align:top;">
             <div style="font-weight:600;">Elitez Asia's Analytics</div>
@@ -511,20 +514,47 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
         ps = vm.get("ps_ratio")
         ps_med = vm.get("ps_sector_median")
 
-        sig_text = pe_vs if pe_vs else ("Undervalued" if pe and pe_med and pe < pe_med else "Overvalued")
-        positive = pe_vs.lower() in ("undervalued", "below median") if pe_vs else (pe and pe_med and pe < pe_med)
-        sig = _signal(positive, sig_text) if pe is not None else ""
+        def _vs_sector(val, median, label):
+            if val is not None and median is not None and median != 0:
+                pct = (val - median) / median * 100
+                word = "discount" if pct < 0 else "premium"
+                return f"{abs(pct):.0f}% {word} vs sector median {label} of {median:.1f}x"
+            return "N/A"
 
-        vm_content = _card("Valuation Multiples", _data_rows([
-            ("P/E Ratio", f"{pe:.2f}" if pe else "N/A"),
-            ("P/E Sector Median", f"{pe_med:.2f}" if pe_med else "N/A"),
-            ("EV/EBITDA", f"{ev:.2f}" if ev else "N/A"),
-            ("EV/EBITDA Sector Median", f"{ev_med:.2f}" if ev_med else "N/A"),
-            ("P/B Ratio", f"{pb:.2f}" if pb else "N/A"),
-            ("P/B Sector Median", f"{pb_med:.2f}" if pb_med else "N/A"),
-            ("P/S Ratio", f"{ps:.2f}" if ps else "N/A"),
-            ("P/S Sector Median", f"{ps_med:.2f}" if ps_med else "N/A"),
-        ]) + sig, "Lecture 5B: Relative valuation compares multiples to sector peers.")
+        vm_rows = []
+        if pe is not None:
+            vm_rows.append(("P/E (TTM)", f"{pe:.2f}x"))
+            vm_rows.append(("vs Sector", _vs_sector(pe, pe_med, "P/E")))
+        if ev is not None:
+            vm_rows.append(("EV/EBITDA", f"{ev:.2f}x"))
+            vm_rows.append(("vs Sector", _vs_sector(ev, ev_med, "EV/EBITDA")))
+        if pb is not None:
+            vm_rows.append(("P/B", f"{pb:.2f}x"))
+            vm_rows.append(("vs Sector", _vs_sector(pb, pb_med, "P/B")))
+        if ps is not None:
+            vm_rows.append(("P/S", f"{ps:.2f}x"))
+            vm_rows.append(("vs Sector", _vs_sector(ps, ps_med, "P/S")))
+
+        # Overall signal based on discount/premium counts
+        discount_count = 0
+        total_compared = 0
+        for val, med in [(pe, pe_med), (ev, ev_med), (pb, pb_med), (ps, ps_med)]:
+            if val is not None and med is not None and med != 0:
+                total_compared += 1
+                if val < med:
+                    discount_count += 1
+        if total_compared > 0:
+            if discount_count > total_compared / 2:
+                sig = _signal(True, "cheap vs peers")
+            elif discount_count < total_compared / 2:
+                sig = _signal(False, "expensive vs peers")
+            else:
+                sig = _signal_amber("fairly valued vs peers")
+        else:
+            sig = ""
+
+        vm_content = _card("Valuation Multiples", _data_rows(vm_rows) + sig,
+            "Lecture 5B: Relative valuation compares multiples to sector peers.")
 
     # WACC
     wacc_d = booth.get("wacc", {}) or {}
@@ -539,13 +569,12 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
         tax = wacc_d.get("tax_rate")
 
         wacc_content = _card("WACC", _data_rows([
-            ("WACC", _pct_safe(w)),
-            ("Cost of Equity (Ke)", _pct_safe(ke)),
-            ("Cost of Debt (Kd)", _pct_safe(kd)),
-            ("Equity Weight", _pct_safe(ew)),
-            ("Debt Weight", _pct_safe(dw)),
-            ("Beta", f"{beta:.3f}" if beta is not None else "N/A"),
+            ("Beta (\u03b2)", f"{beta:.3f}" if beta is not None else "N/A"),
+            ("Cost of Equity (rE)", _pct_safe(ke)),
             ("Tax Rate", _pct_safe(tax)),
+            ("E / (E+D)", _pct_safe(ew)),
+            ("D / (E+D)", _pct_safe(dw)),
+            ("WACC", _pct_safe(w)),
         ]), "Lecture 4B: WACC = (E/V)Ke + (D/V)Kd(1-T). Discount rate for firm valuation.")
 
     # Free Cash Flow
@@ -557,17 +586,27 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
         rev = fcf_d.get("revenue")
         fy = fcf_d.get("fcf_yield_pct")
         fm = fcf_d.get("fcf_margin_pct")
+        mkt_cap_fcf = fcf_d.get("market_cap") or (booth.get("wacc", {}) or {}).get("market_cap")
 
-        positive_fcf = fcf is not None and fcf > 0
-        sig = _signal(positive_fcf, "Positive FCF" if positive_fcf else "Negative FCF") if fcf is not None else ""
+        # P/FCF calculation
+        p_fcf = None
+        if fcf and fcf > 0 and mkt_cap_fcf:
+            try:
+                p_fcf = float(mkt_cap_fcf) / float(fcf)
+            except (ValueError, TypeError, ZeroDivisionError):
+                pass
+
+        strong_cash = fy is not None and fy > 4
+        sig_text = "strong cash generator" if strong_cash else "weak cash generation"
+        sig = _signal(strong_cash, sig_text) if fy is not None else ""
 
         fcf_content = _card("Free Cash Flow", _data_rows([
+            ("Operating CF", _fmt(ocf, "currency")),
             ("Free Cash Flow", _fmt(fcf, "currency")),
-            ("Operating Cash Flow", _fmt(ocf, "currency")),
-            ("Revenue", _fmt(rev, "currency")),
             ("FCF Yield", f"{fy:.2f}%" if fy is not None else "N/A"),
             ("FCF Margin", f"{fm:.2f}%" if fm is not None else "N/A"),
-        ]) + sig, "Lectures 4A/4B: FCF = Operating CF - CapEx. True cash generation capacity.")
+            ("P / FCF", f"{p_fcf:.2f}x" if p_fcf is not None else "N/A"),
+        ]) + sig, "FCF = Operating CF \u2212 CapEx | FCF Yield > 4% = strong cash generator")
 
     # DCF 3-Stage
     dcf_d = booth.get("dcf_model", {}) or {}
@@ -583,41 +622,91 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
         base_fcf = dcf_d.get("base_fcf")
 
         positive_dcf = upside is not None and upside > 0
-        sig = _signal(positive_dcf, f"{upside:+.1f}% {'Upside' if positive_dcf else 'Downside'}") if upside is not None else ""
+        sig = _signal(positive_dcf, "potentially undervalued" if positive_dcf else "potentially overvalued") if upside is not None else ""
 
-        # Sensitivity grid
+        # Margin of Safety
+        mos = None
+        if iv is not None and cp is not None and iv != 0:
+            try:
+                mos = (float(iv) - float(cp)) / float(iv) * 100
+            except (ValueError, TypeError, ZeroDivisionError):
+                pass
+
+        # Market-Implied Growth (approximate as terminal growth)
+        mig = tg
+
+        # Sensitivity grid - parse into proper grid format
         sens = dcf_d.get("sensitivity", {})
         sens_html = ""
         if sens:
             sens_html = '<div style="margin-top:8pt;"><div style="font-size:8pt; color:#94a3b8; margin-bottom:4pt; text-transform:uppercase; letter-spacing:0.5pt;">Sensitivity Grid (WACC vs Growth)</div>'
             sens_html += '<table style="width:100%; border-collapse:collapse; font-size:7.5pt;">'
-            # Header
-            sens_html += f'<tr><td style="padding:3pt; background:#f8fafc; border:1px solid {BORDER_COLOR};"></td>'
-            for gk in sorted(sens.keys()):
-                sens_html += f'<td style="padding:3pt; background:#f8fafc; border:1px solid {BORDER_COLOR}; text-align:center; font-weight:600;">g={gk}</td>'
-            sens_html += '</tr>'
-            # Rows - sens is {growth_rate: {wacc_rate: value}}
-            if sens:
-                first_growth = sorted(sens.keys())[0]
-                wacc_keys = sorted(sens[first_growth].keys()) if isinstance(sens[first_growth], dict) else []
-                for wk in wacc_keys:
-                    sens_html += f'<tr><td style="padding:3pt; background:#f8fafc; border:1px solid {BORDER_COLOR}; font-weight:600;">WACC={wk}</td>'
-                    for gk in sorted(sens.keys()):
+
+            if isinstance(list(sens.values())[0], dict):
+                # Format: {growth_rate: {wacc_rate: value}}
+                g_keys = sorted(sens.keys())
+                first_g = g_keys[0]
+                w_keys = sorted(sens[first_g].keys()) if isinstance(sens[first_g], dict) else []
+
+                # Header row: g \ WACC, then WACC columns
+                sens_html += f'<tr><td style="padding:3pt; background:#f8fafc; border:1px solid {BORDER_COLOR}; font-weight:600;">g \\ WACC</td>'
+                for wk in w_keys:
+                    sens_html += f'<td style="padding:3pt; background:#f8fafc; border:1px solid {BORDER_COLOR}; text-align:center; font-weight:600;">WACC {wk}</td>'
+                sens_html += '</tr>'
+                # Rows: each growth rate
+                for gk in g_keys:
+                    sens_html += f'<tr><td style="padding:3pt; background:#f8fafc; border:1px solid {BORDER_COLOR}; font-weight:600;">g {gk}</td>'
+                    for wk in w_keys:
                         v = sens[gk].get(wk, "N/A") if isinstance(sens[gk], dict) else "N/A"
                         cell_val = f"${v:,.0f}" if isinstance(v, (int, float)) else str(v)
                         sens_html += f'<td style="padding:3pt; border:1px solid {BORDER_COLOR}; text-align:center;">{cell_val}</td>'
                     sens_html += '</tr>'
+            else:
+                # Format: {"WACC=X%,g=Y%": value} - parse into grid
+                import re as _re
+                grid = {}
+                w_set = set()
+                g_set = set()
+                for k, v in sens.items():
+                    m = _re.match(r'WACC=([\d.]+)%,g=([\d.]+)%', str(k))
+                    if m:
+                        wk, gk = m.group(1), m.group(2)
+                        w_set.add(wk)
+                        g_set.add(gk)
+                        grid[(gk, wk)] = v
+                if grid:
+                    w_keys = sorted(w_set, key=lambda x: float(x))
+                    g_keys = sorted(g_set, key=lambda x: float(x))
+                    sens_html += f'<tr><td style="padding:3pt; background:#f8fafc; border:1px solid {BORDER_COLOR}; font-weight:600;">g \\ WACC</td>'
+                    for wk in w_keys:
+                        sens_html += f'<td style="padding:3pt; background:#f8fafc; border:1px solid {BORDER_COLOR}; text-align:center; font-weight:600;">WACC {wk}%</td>'
+                    sens_html += '</tr>'
+                    for gk in g_keys:
+                        sens_html += f'<tr><td style="padding:3pt; background:#f8fafc; border:1px solid {BORDER_COLOR}; font-weight:600;">g {gk}%</td>'
+                        for wk in w_keys:
+                            v = grid.get((gk, wk), "N/A")
+                            cell_val = f"${v:,.0f}" if isinstance(v, (int, float)) else str(v)
+                            sens_html += f'<td style="padding:3pt; border:1px solid {BORDER_COLOR}; text-align:center;">{cell_val}</td>'
+                        sens_html += '</tr>'
+                else:
+                    # Fallback: just list key-value pairs
+                    for k, v in sens.items():
+                        cell_val = f"${v:,.0f}" if isinstance(v, (int, float)) else str(v)
+                        sens_html += f'<tr><td style="padding:3pt; border:1px solid {BORDER_COLOR};">{k}</td><td style="padding:3pt; border:1px solid {BORDER_COLOR}; text-align:center;">{cell_val}</td></tr>'
+
             sens_html += '</table></div>'
 
         dcf_content = _card("DCF 3-Stage Model", _data_rows([
             ("Intrinsic Value / Share", _fmt(iv, "price")),
             ("Current Price", _fmt(cp, "price")),
             ("Upside / Downside", f"{upside:+.1f}%" if upside is not None else "N/A"),
+            ("Trailing FCF", _fmt(base_fcf, "currency")),
+            ("Margin of Safety", f"{mos:.1f}%" if mos is not None else "N/A"),
+            ("Market-Implied Growth", _pct_safe(mig)),
             ("WACC", _pct_safe(w)),
             ("Near-Term Growth", _pct_safe(ntg)),
             ("Fade Growth", _pct_safe(fg)),
             ("Terminal Growth", _pct_safe(tg)),
-            ("Base FCF", _fmt(base_fcf, "currency")),
         ]) + sig + sens_html, "Lecture 5B: 3-stage DCF with near-term, fade, and terminal growth assumptions.")
 
     # --- FS Cards ---
@@ -644,6 +733,20 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
                        f'border:1px solid {RED}; border-radius:4px; padding:2pt 8pt; '
                        f'font-size:8pt; font-weight:600;">Speculative Grade</div>')
 
+        # Default probability mapping
+        def _default_prob(r):
+            if r in ("AAA", "AA+", "AA", "AA-", "A+", "A", "A-"):
+                return "0.0%"
+            elif r in ("BBB+", "BBB", "BBB-"):
+                return "0.1%"
+            elif r in ("BB+", "BB", "BB-"):
+                return "0.5%"
+            elif r in ("B+", "B", "B-"):
+                return "2.0%"
+            elif r in ("CCC+", "CCC", "CCC-", "CC", "C"):
+                return "10.0%"
+            return "N/A"
+
         cr_content = _card("Implied Credit Rating",
             f'<div style="text-align:center; margin:8pt 0;">'
             f'<div style="font-size:28pt; font-weight:700; color:{DARK_TEXT};">{rating}</div>'
@@ -654,6 +757,7 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
                 ("Factors Assessed", str(nf) if nf else "N/A"),
                 ("EBIT / Interest", f"{ebit_int:.2f}x" if ebit_int is not None else "N/A"),
                 ("EBITDA / Interest", f"{ebitda_int:.2f}x" if ebitda_int is not None else "N/A"),
+                ("Default Prob. (ann.)", _default_prob(rating)),
             ]),
             "D1: Implied rating based on financial ratio scoring mapped to S&P rating scale.")
 
@@ -669,24 +773,42 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
         ic = sto_d.get("interest_coverage")
         assess = sto_d.get("assessment", "")
 
-        # Format PV scores as "+X / Y" style
-        def _pv_fmt(val, label):
-            if val is None:
-                return "N/A"
-            return _fmt(val, "currency")
+        # Get market cap for scoring thresholds
+        cs_mkt = (fs.get("capital_structure", {}) or {}).get("market_cap") or (fs.get("payout_policy", {}) or {}).get("market_cap") or 1
 
-        positive_nb = nb is not None and nb > 0
-        sig = _signal(positive_nb, "Net Benefit Positive" if positive_nb else "Net Benefit Negative") if nb is not None else ""
+        # Calculate scores
+        try:
+            mkt_f = float(cs_mkt) if cs_mkt else 1
+        except (ValueError, TypeError):
+            mkt_f = 1
+
+        ts_score = 2 if pvts and float(pvts) > mkt_f * 0.05 else (1 if pvts and float(pvts) > 0 else 0)
+        disc_score = 2 if pvdb and float(pvdb) > 0 else 0
+        dist_score = -4 if pvdc and float(pvdc) > mkt_f * 0.1 else (-2 if pvdc and float(pvdc) > mkt_f * 0.03 else 0)
+        net_score = ts_score + disc_score + dist_score
+
+        # Explanatory text
+        ts_explain = "insufficient data" if not pvts or float(pvts) == 0 else f"tax shield = {_fmt(pvts, 'currency')}"
+        disc_explain = "insufficient data" if not pvdb or float(pvdb) == 0 else f"discipline benefit = {_fmt(pvdb, 'currency')}"
+        dist_explain = "insufficient data" if not pvdc or float(pvdc) == 0 else f"distress cost = {_fmt(pvdc, 'currency')}"
+
+        positive_net = net_score > 0
+        sig_text = "lean toward debt" if positive_net else "lean toward equity \u2014 distress costs are real"
+        sig = _signal(positive_net, sig_text)
 
         sto_content = _card("Static Trade-Off", _data_rows([
-            ("PV Tax Shield (+)", _pv_fmt(pvts, "tax")),
-            ("PV Discipline Benefit (+)", _pv_fmt(pvdb, "disc")),
-            ("PV Distress Cost (-)", _pv_fmt(pvdc, "dist")),
-            ("Net Benefit of Debt", _fmt(nb, "currency")),
-            ("Leverage Ratio", f"{lr:.1%}" if lr is not None else "N/A"),
-            ("Interest Coverage", f"{ic:.2f}x" if ic is not None else "N/A"),
-            ("Assessment", assess),
-        ]) + sig, "D2/D3/D4: Trade-off between tax shields + discipline benefits vs. distress costs.")
+            ("PV(Tax Shield)", f"+{ts_score} / 2"),
+            ("PV(Discipline)", f"+{disc_score} / 2"),
+            ("PV(Distress Cost)", f"{dist_score} / -4"),
+        ]) +
+        f'<div style="font-size:7.5pt; color:{GREY}; margin:2pt 0;">{ts_explain}</div>'
+        f'<div style="font-size:7.5pt; color:{GREY}; margin:2pt 0;">{disc_explain}</div>'
+        f'<div style="font-size:7.5pt; color:{GREY}; margin:2pt 0;">{dist_explain}</div>'
+        f'<div style="text-align:center; margin:8pt 0;">'
+        f'<div style="font-size:28pt; font-weight:700; color:{DARK_TEXT};">{net_score:+d}</div>'
+        f'<div style="font-size:8pt; color:{GREY};">Net Score</div></div>'
+        + sig,
+        "V_L = V_U + PV(TS) + PV(Discipline) \u2212 PV(Distress)")
 
     # Payout & Cash Policy
     pp_d = fs.get("payout_policy", {}) or {}
@@ -699,16 +821,49 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
         cash_pct = pp_d.get("cash_as_pct_of_mktcap")
         assess = pp_d.get("assessment", "")
         td = pp_d.get("tax_drag_annual")
+        total_cash_pp = pp_d.get("total_cash")
+        mkt_cap_pp = pp_d.get("market_cap")
+        revenue_pp = pp_d.get("revenue")
+        net_debt_pp = pp_d.get("net_debt")
+
+        # Cash / Revenue
+        cash_rev = None
+        if total_cash_pp and revenue_pp:
+            try:
+                cash_rev = float(total_cash_pp) / float(revenue_pp) * 100
+            except (ValueError, TypeError, ZeroDivisionError):
+                pass
+
+        # Net Cash?
+        net_cash_str = "N/A"
+        if net_debt_pp is not None:
+            net_cash_str = "yes (net cash)" if float(net_debt_pp) < 0 else "no (net debt)"
+
+        # Tax Drag / Mkt Cap
+        td_mkt = None
+        if td and mkt_cap_pp:
+            try:
+                td_mkt = float(td) / float(mkt_cap_pp) * 100
+            except (ValueError, TypeError, ZeroDivisionError):
+                pass
+
+        # Signal: amber when excess > 0 and low dividend
+        if excess is not None and float(excess) > 0 and (dy is None or dy < 0.02):
+            sig = _signal_amber("excess cash with minimal payout")
+        else:
+            positive_pp = excess is not None and float(excess) > 0
+            sig = _signal(positive_pp, assess if assess else ("Healthy Payout" if positive_pp else "Cash Constrained"))
 
         pp_content = _card("Payout & Cash Policy", _data_rows([
-            ("Excess Cash", _fmt(excess, "currency")),
+            ("Cash & Liquids", _fmt(total_cash_pp, "currency")),
+            ("Cash / Revenue", f"{cash_rev:.1f}%" if cash_rev is not None else "N/A"),
+            ("Cash / Mkt Cap", f"{cash_pct:.1f}%" if cash_pct is not None else "N/A"),
+            ("Net Cash?", net_cash_str),
+            ("Estimated Excess Cash", _fmt(excess, "currency")),
+            ("Annual Tax Drag", _fmt(td, "currency")),
+            ("Tax Drag / Mkt Cap", f"{td_mkt:.2f}%" if td_mkt is not None else "N/A"),
             ("Dividend Yield", f"{dy:.2f}%" if dy is not None else "N/A"),
-            ("Payout Ratio", f"{pr:.1f}%" if pr is not None else "N/A"),
-            ("Free Cash Flow", _fmt(fcf_pp, "currency")),
-            ("Cash as % of Mkt Cap", f"{cash_pct:.1f}%" if cash_pct is not None else "N/A"),
-            ("Tax Drag (Annual)", _fmt(td, "currency")),
-            ("Assessment", assess),
-        ]), "D4: Cash distribution policy balancing shareholder returns vs. financial flexibility.")
+        ]) + sig, "D4 FANUC insight: $1 held in corp earns after-tax (1-\u03c4) \u2014 excess cash is a negative tax shield. Optimal: hold only operating cash + buffer; return rest via buyback/dividend.")
 
     # Altman Z-Score
     az_d = fs.get("altman_z", {}) or {}
@@ -755,19 +910,33 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
         dm = po_d.get("debt_to_mktcap")
         stage = po_d.get("pecking_order_stage", "N/A")
 
+        # Get net_debt_to_ebitda from capital structure for debt level display
+        cs_nd_ebitda = (fs.get("capital_structure", {}) or {}).get("net_debt_to_ebitda")
+        debt_level_display = f"{cs_nd_ebitda:.1f}x EBITDA" if cs_nd_ebitda is not None else (dl if dl else "N/A")
+
+        # Get price_to_book from info (passed via fs context or po_d)
+        ptb_po = po_d.get("price_to_book")
+
+        # Calculate pecking order score 0-4
+        po_score = 0
+        if fcf_po is not None and capex is not None and float(fcf_po) > abs(float(capex)):
+            po_score += 1
+        if pr_po is not None and pr_po < 50:
+            po_score += 1
+        if dl and dl.lower() in ("low", "moderate"):
+            po_score += 1
+        if internal:
+            po_score += 1
+
         sig = _signal(internal, "Internal Funding Sufficient" if internal else "External Funding Needed") if internal is not None else ""
 
         po_content = _card("Pecking Order (Myers-Majluf)", _data_rows([
-            ("Stage", stage),
-            ("FCF", _fmt(fcf_po, "currency")),
-            ("CapEx", _fmt(capex, "currency")),
-            ("FCF - CapEx", _fmt(fcf_cap, "currency")),
-            ("Internal Funding Sufficient", "Yes" if internal else "No"),
+            ("Score", f"{po_score}/4"),
+            ("FCF vs CapEx", f"FCF {_fmt(fcf_po, 'currency')} vs CapEx {_fmt(capex, 'currency')}"),
             ("Payout Ratio", f"{pr_po:.1f}%" if pr_po is not None else "N/A"),
-            ("Retained Earnings", _fmt(re, "currency")),
-            ("RE / Equity", f"{re_eq:.2f}x" if re_eq is not None else "N/A"),
-            ("Debt Level", dl if dl else "N/A"),
-            ("Debt / Mkt Cap", f"{dm:.1f}%" if dm is not None else "N/A"),
+            ("Retained Earnings / Equity", f"{re_eq:.2f}x" if re_eq is not None else "N/A"),
+            ("Debt Level", debt_level_display),
+            ("Price / Book", f"{ptb_po:.2f}x" if ptb_po is not None else "N/A"),
         ]) + sig, "Myers-Majluf: Firms prefer internal funds > debt > equity due to information asymmetry.")
 
     # Build two-column pages
@@ -813,7 +982,7 @@ def _build_om_page(ticker: str, om: dict) -> str:
         positive = ccc is not None and ccc < 60
         sig = _signal(positive, assess if assess else ("Efficient Cycle" if positive else "Extended Cycle")) if ccc is not None else ""
 
-        sc_content = _card("Supply Chain Efficiency", _data_rows([
+        sc_content = _card("SUPPLY CHAIN EFFICIENCY &middot; S1/S6/S7", _data_rows([
             ("Cash Conversion Cycle", f"{ccc:.1f} days" if ccc is not None else "N/A"),
             ("DIO (Days Inventory)", f"{dio:.1f} days" if dio is not None else "N/A"),
             ("DSO (Days Sales)", f"{dso:.1f} days" if dso is not None else "N/A"),
@@ -837,7 +1006,7 @@ def _build_om_page(ticker: str, om: dict) -> str:
         positive = gm is not None and gm > 30
         sig = _signal(positive, assess if assess else ("Strong Margins" if positive else "Thin Margins")) if gm is not None else ""
 
-        pq_content = _card("Process Quality & Lean", _data_rows([
+        pq_content = _card("PROCESS QUALITY &amp; LEAN &middot; S5 (TQM/TPS)", _data_rows([
             ("Gross Margin", f"{gm:.2f}%" if gm is not None else "N/A"),
             ("Operating Margin", f"{opm:.2f}%" if opm is not None else "N/A"),
             ("Overhead Gap", f"{ogap:.2f}%" if ogap is not None else "N/A"),
@@ -862,7 +1031,7 @@ def _build_om_page(ticker: str, om: dict) -> str:
         positive = fat is not None and fat > 2
         sig = _signal(positive, assess if assess else ("High Throughput" if positive else "Low Throughput")) if fat is not None else ""
 
-        ot_content = _card("Operational Throughput", _data_rows([
+        ot_content = _card("OPERATIONAL THROUGHPUT &middot; S2/S4", _data_rows([
             ("Revenue", _fmt(rev, "currency")),
             ("Revenue Growth", _pct_safe(rg)),
             ("Fixed Assets", _fmt(fa, "currency")),
@@ -887,7 +1056,7 @@ def _build_om_page(ticker: str, om: dict) -> str:
         else:
             sig = ""
 
-        dv_content = _card("Demand Variability & Bullwhip", _data_rows([
+        dv_content = _card("DEMAND VARIABILITY &amp; BULLWHIP &middot; S7/S8", _data_rows([
             ("Revenue CV", f"{rcv:.4f}" if rcv is not None else "N/A"),
             ("Inventory Growth", _pct_safe(ig)),
             ("Revenue Growth", _pct_safe(rg)),
@@ -950,7 +1119,7 @@ def _build_cs_page(ticker: str, cs: dict, cs_narrative: str) -> str:
             dim_label = dim.replace("_", " ").title()
             score_rows.append((dim_label, f"{val} / 2"))
 
-        moat_content = _card("Competitive Moat",
+        moat_content = _card("COMPETITIVE MOAT &middot; SESSION 2/6",
             f'<div style="text-align:center; margin:6pt 0;">'
             f'<div style="font-size:24pt; font-weight:700; color:{DARK_TEXT};">{total} / 10</div>'
             f'<div style="font-size:9pt; color:{GREY};">Moat Width: {width}</div></div>' +
@@ -977,7 +1146,7 @@ def _build_cs_page(ticker: str, cs: dict, cs_narrative: str) -> str:
 
         level_color = GREEN if level and level.upper() == "LOW" else (RED if level and level.upper() == "HIGH" else AMBER)
 
-        dr_content = _card("Disruption Risk",
+        dr_content = _card("DISRUPTION RISK &middot; SESSION 7",
             f'<div style="text-align:center; margin:6pt 0;">'
             f'<div style="font-size:22pt; font-weight:700; color:{level_color};">{level.upper() if level else "N/A"}</div>'
             f'<div style="font-size:9pt; color:{GREY};">Score: {score}/10</div></div>' +
@@ -1005,7 +1174,7 @@ def _build_cs_page(ticker: str, cs: dict, cs_narrative: str) -> str:
         roe_pct = mp.get("roe_pct")
         risk = mp.get("risk_profile", "N/A")
 
-        mp_content = _card("Market Position",
+        mp_content = _card("MARKET POSITION &middot; SESSION 2/3",
             f'<div style="text-align:center; margin:6pt 0;">'
             f'<div style="display:inline-block; background:{MAROON_LIGHT}; color:{MAROON}; '
             f'border:1px solid {MAROON}; border-radius:4px; padding:3pt 12pt; '
@@ -1058,41 +1227,27 @@ def _build_disclaimers(ticker: str, today_str: str) -> str:
       <div style="font-size:9pt; color:#475569; line-height:1.7;">
         <div style="margin-bottom:12pt;">
           <div style="font-weight:700; color:{DARK_TEXT}; margin-bottom:4pt;">Not Investment Advice</div>
-          <div>This report is generated by Elitez Asia's Analytics platform for educational and
-          informational purposes only. It does not constitute financial advice, investment recommendations,
-          or an offer to buy or sell securities. The information contained herein should not be relied upon
-          as the sole basis for any investment decision.</div>
+          <div>This report has been prepared by Elitez Asia's Analytics solely for informational and educational purposes. Nothing contained in this report constitutes investment advice, a solicitation, an offer to buy or sell any security, or a recommendation of any investment strategy. The analysis and opinions expressed herein are based on publicly available financial data and do not represent the views of any regulated financial institution or licensed investment adviser.</div>
         </div>
 
         <div style="margin-bottom:12pt;">
-          <div style="font-weight:700; color:{DARK_TEXT}; margin-bottom:4pt;">Data Sources & Limitations</div>
-          <div>Financial data is sourced from Yahoo Finance, Finnhub, Stooq, and FRED.
-          Data accuracy depends on these third-party sources. Historical data may be subject to
-          revisions and adjustments. Real-time data may be delayed.</div>
+          <div style="font-weight:700; color:{DARK_TEXT}; margin-bottom:4pt;">Data Sources &amp; Limitations</div>
+          <div>Financial data is sourced from public filings (SEC/EDGAR), market data providers, and news sources via automated data feeds. While reasonable care has been taken to ensure accuracy, Elitez Asia's Analytics makes no warranty, express or implied, as to the completeness, timeliness, or accuracy of any data. Market data reflects conditions as at the report date ({today_str}) and may have changed materially since publication. Operations Management metrics (e.g. OEE, Cpk, actual queue lengths) are estimated from public financial statements and are not directly observed internal metrics.</div>
         </div>
 
         <div style="margin-bottom:12pt;">
           <div style="font-weight:700; color:{DARK_TEXT}; margin-bottom:4pt;">AI-Generated Content</div>
-          <div>AI-generated narratives and analyses are produced by Claude (Anthropic) and should be
-          treated as analytical commentary, not professional financial advice. AI models may produce
-          inaccurate or incomplete analysis. Always verify AI-generated insights independently.</div>
+          <div>Portions of this report (Investment Thesis and OM Narrative sections) are generated by Claude AI (Anthropic) based on structured financial data and publicly available news. AI-generated content is provided as a starting point for analysis and should be independently verified. It does not constitute professional financial advice.</div>
         </div>
 
         <div style="margin-bottom:12pt;">
           <div style="font-weight:700; color:{DARK_TEXT}; margin-bottom:4pt;">Analytical Frameworks</div>
-          <div>The analytics framework is based on Chicago Booth research methodologies including
-          Corporate Finance (CAPM, WACC, DCF), Financial Strategy (Capital Structure, Credit Rating,
-          Altman Z-Score), Operations Management (Supply Chain, Throughput, Quality), and Competitive
-          Strategy (Moat Analysis, Disruption Risk, Market Position). These are educational frameworks
-          and may not capture all relevant factors.</div>
+          <div>Valuation and financial strategy frameworks referenced in this report are derived from publicly available academic and practitioner literature, including the University of Chicago Booth School of Business course materials. Altman Z-Score was developed for manufacturing firms; results for financial services, technology, and asset-light businesses should be interpreted with caution.</div>
         </div>
 
         <div style="margin-bottom:12pt;">
           <div style="font-weight:700; color:{DARK_TEXT}; margin-bottom:4pt;">No Liability</div>
-          <div>Elitez Asia's Analytics, its creators, and affiliates accept no liability for any loss
-          or damage arising from the use of this report. Past performance does not guarantee future
-          results. All investments carry risk, including potential loss of principal. Always consult
-          a qualified financial advisor before making investment decisions.</div>
+          <div>Elitez Asia's Analytics, its affiliates, and contributors accept no liability for any loss or damage arising from the use of, or reliance on, information in this report. Past performance of any security referenced herein is not a reliable indicator of future results. All investments carry risk, including the possible loss of principal.</div>
         </div>
       </div>
 
@@ -1100,9 +1255,11 @@ def _build_disclaimers(ticker: str, today_str: str) -> str:
       <div style="margin-top:30pt; border-top:2px solid {MAROON}; padding-top:12pt;">
         <table width="100%"><tr>
           <td style="vertical-align:top;">
-            <img src="data:image/svg+xml;base64,{_LOGO_B64_SMALL}" height="20" style="vertical-align:middle;" />
-            <span style="font-size:9pt; font-weight:700; color:{MAROON}; margin-left:8pt;
-                         vertical-align:middle;">ELITEZ ASIA'S ANALYTICS</span>
+            <div>
+              <img src="data:image/svg+xml;base64,{_LOGO_B64_SMALL}" height="20" style="vertical-align:middle;" />
+              <span style="font-size:9pt; font-weight:700; color:{MAROON}; margin-left:8pt;
+                           vertical-align:middle;">ELITEZ ASIA'S ANALYTICS</span>
+            </div>
             <div style="font-size:8pt; color:{GREY}; margin-top:4pt;">
               elitez-market.streamlit.app &middot; Powered by Claude AI
             </div>
@@ -1116,7 +1273,7 @@ def _build_disclaimers(ticker: str, today_str: str) -> str:
       </div>
 
       <!-- Dark maroon band -->
-      <div style="background:{MAROON}; height:6pt; margin-top:12pt; border-radius:2px;"></div>
+      <div style="background:{MAROON}; height:80pt; margin-top:12pt; border-radius:8px 8px 0 0;"></div>
     </div>
     """
 
