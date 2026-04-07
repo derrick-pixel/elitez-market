@@ -1,14 +1,12 @@
 """
 PDF Report generation using WeasyPrint.
 
-9-page reference design:
-  Page 1: Cover
-  Page 2: Executive Summary + Company Info + CF|FS start
-  Pages 3-5: CF|FS continued (two-column)
-  Page 6: Operations Management
-  Page 7: OM Narrative
-  Page 8: Competitive Strategy
-  Page 9: Disclaimers
+Restructured layout:
+  Page 1: Cover (includes compact executive summary)
+  Pages 2+: CF|FS content (Investment Thesis, Company Info, two-column cards, narrative)
+  OM content (cards + narrative together, no forced break)
+  CS content (cards + narrative together, no forced break)
+  Disclaimers
 
 Color theme: ChicagoBooth Maroon (#9B1B30) and Grey (#53565A, Pantone Cool Gray 11C).
 Branding: Elitez Asia's Analytics, Powered by CB Research Framework.
@@ -181,16 +179,16 @@ def _narrative_card(title: str, text: str) -> str:
 
 
 def _metric_box(label: str, value: str, sublabel: str = "") -> str:
-    """A single metric box for the executive summary grid."""
+    """A single COMPACT metric box for the executive summary grid on cover page."""
     sub_html = ""
     if sublabel:
-        sub_html = f'<div style="font-size:7.5pt; color:{GREY}; margin-top:2pt;">{sublabel}</div>'
-    return (f'<td style="width:33%; padding:8pt; border:1px solid {BORDER_COLOR}; '
+        sub_html = f'<div style="font-size:6.5pt; color:{GREY}; margin-top:1pt;">{sublabel}</div>'
+    return (f'<td style="width:33%; padding:5pt; border:1px solid {BORDER_COLOR}; '
             f'border-radius:2px; text-align:center; vertical-align:top;">'
-            f'<div style="font-size:7.5pt; color:{GREY}; text-transform:uppercase; '
+            f'<div style="font-size:6.5pt; color:{GREY}; text-transform:uppercase; '
             f'letter-spacing:0.5pt;">{label}</div>'
-            f'<div style="font-size:16pt; font-weight:700; color:{DARK_TEXT}; '
-            f'margin-top:2pt; font-family:\'Courier New\', Courier, monospace;">{value}</div>'
+            f'<div style="font-size:12pt; font-weight:700; color:{DARK_TEXT}; '
+            f'margin-top:1pt; font-family:\'Courier New\', Courier, monospace;">{value}</div>'
             f'{sub_html}</td>')
 
 
@@ -209,10 +207,10 @@ def _page_header(ticker: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# PAGE 1: Cover
+# PAGE 1: Cover (now includes compact executive summary)
 # ---------------------------------------------------------------------------
 
-def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None) -> str:
+def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None, fs: dict = None) -> str:
     name = info.get("longName") or info.get("shortName") or ticker
     sector = info.get("sector", "N/A")
     industry = info.get("industry", "N/A")
@@ -227,7 +225,7 @@ def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None) ->
     description = info.get("longBusinessSummary", "")
     div_display = f"{div_yield*100:.2f}%" if div_yield else "N/A"
 
-    # Stats row: 4 top + 4 bottom (8 stats, two rows of 4)
+    # Stats row: 8 stats in one row
     stats_html = f"""
     <table style="width:100%; border-collapse:collapse; margin:20pt 0;">
       <tr>
@@ -259,6 +257,64 @@ def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None) ->
     </table>
     """
 
+    # --- Executive Summary metrics (compact, on cover page) ---
+    booth = booth or {}
+    fs = fs or {}
+    dcf = booth.get("dcf_model", {}) or {}
+    capm = booth.get("capm_alpha", {}) or {}
+    cr = fs.get("credit_rating", {}) or {}
+    az = fs.get("altman_z", {}) or {}
+    fcf_d = booth.get("free_cash_flow", {}) or {}
+    po = fs.get("pecking_order", {}) or {}
+
+    # DCF upside
+    upside_val = _safe(dcf, "upside_pct")
+    iv = _safe(dcf, "intrinsic_value_per_share")
+    upside_str = f"{upside_val:+.1f}%" if upside_val is not None else "N/A"
+    iv_str = f"IV: ${iv:,.2f}" if iv is not None else ""
+
+    # Implied rating
+    rating = cr.get("implied_rating", "N/A") if cr else "N/A"
+    score = cr.get("composite_score", "N/A") if cr else "N/A"
+    rating_sub = f"Score: {score}/8" if score != "N/A" else ""
+
+    # Altman Z
+    z_val = _safe(az, "z_score")
+    z_str = f"{z_val:.2f}" if z_val is not None else "N/A"
+    z_zone = _safe(az, "zone", "N/A")
+
+    # FCF Yield
+    fcf_yield = fcf_d.get("fcf_yield_pct") if fcf_d else None
+    fcf_yield_str = f"{fcf_yield:.2f}%" if fcf_yield is not None else "N/A"
+
+    # Jensen's Alpha
+    alpha = _safe(capm, "jensens_alpha")
+    alpha_str = f"{alpha*100:+.2f}%" if alpha is not None else "N/A"
+
+    # Pecking Order
+    po_stage = po.get("pecking_order_stage", "N/A") if po else "N/A"
+    po_net = po.get("net_score", "") if po else ""
+    po_sub = f"Net: {po_net}" if po_net else ""
+
+    exec_summary_html = f"""
+    <div style="margin:10pt 0 6pt 0;">
+      <div style="text-transform:uppercase; letter-spacing:1.5pt; font-size:8pt;
+                   color:{MAROON}; font-weight:700; margin-bottom:4pt;">Executive Summary</div>
+      <table style="width:100%; border-collapse:separate; border-spacing:4pt;">
+        <tr>
+          {_metric_box("DCF Upside/Downside", upside_str, iv_str)}
+          {_metric_box("Implied S&P Rating", rating, rating_sub)}
+          {_metric_box("Altman Z-Score", z_str, z_zone)}
+        </tr>
+        <tr>
+          {_metric_box("FCF Yield", fcf_yield_str)}
+          {_metric_box("Jensen's Alpha", alpha_str)}
+          {_metric_box("Pecking Order", po_stage, po_sub)}
+        </tr>
+      </table>
+    </div>
+    """
+
     # CB Framework Rating based on DCF upside
     _dcf = (booth or {}).get("dcf_model", {}) or {}
     _dcf_upside = _dcf.get("upside_pct") if _dcf and "error" not in _dcf else None
@@ -273,11 +329,11 @@ def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None) ->
         _rating_verdict = "NOT RATED"
 
     rating_html = (
-        f'<div style="margin:16pt 0; text-align:left;">'
+        f'<div style="margin:10pt 0; text-align:left;">'
         f'<span style="font-size:8pt; color:{GREY}; text-transform:uppercase; letter-spacing:1pt;">CB Framework Rating</span>'
-        f'<div style="font-size:16pt; font-weight:700; color:{MAROON}; margin-top:2pt; letter-spacing:1pt;">'
+        f'<div style="font-size:14pt; font-weight:700; color:{MAROON}; margin-top:2pt; letter-spacing:1pt;">'
         f'{_rating_verdict}</div>'
-        f'<div style="font-size:8pt; color:{GREY};">Based on DCF intrinsic value vs. current market price</div>'
+        f'<div style="font-size:7pt; color:{GREY};">Based on DCF intrinsic value vs. current market price</div>'
         f'</div>'
     )
 
@@ -309,12 +365,12 @@ def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None) ->
         </tr></table>
       </div>
 
-      <!-- Spacer -->
-      <div style="height:60pt;"></div>
+      <!-- Spacer (reduced from 60pt to 40pt) -->
+      <div style="height:40pt;"></div>
 
-      <!-- Ticker -->
+      <!-- Ticker (reduced from 42pt to 36pt) -->
       <div style="text-align:left;">
-        <div style="font-size:42pt; font-weight:700; color:{DARK_TEXT}; letter-spacing:3pt;">{ticker}</div>
+        <div style="font-size:36pt; font-weight:700; color:{DARK_TEXT}; letter-spacing:3pt;">{ticker}</div>
         <div style="font-size:14pt; color:#475569; margin-top:4pt;">{name}</div>
         <div style="margin-top:8pt;">
           <span style="{pill_style}">{sector}</span>
@@ -325,17 +381,20 @@ def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None) ->
       <!-- Stats grid -->
       {stats_html}
 
+      <!-- Executive Summary boxes (compact 2x3 grid) -->
+      {exec_summary_html}
+
       <!-- CB Framework Rating -->
       {rating_html}
 
       <!-- Description -->
-      <div style="border-left:3pt solid {BORDER_COLOR}; padding:10pt 14pt; margin:16pt 20pt;
+      <div style="border-left:3pt solid {BORDER_COLOR}; padding:10pt 14pt; margin:10pt 20pt;
                    font-size:9pt; color:#475569; line-height:1.6; background:#fafafa;">
         {desc_text}
       </div>
 
       <!-- Footer -->
-      <div style="margin-top:40pt; border-top:1px solid {BORDER_COLOR}; padding-top:10pt;">
+      <div style="margin-top:20pt; border-top:1px solid {BORDER_COLOR}; padding-top:10pt;">
         <table width="100%"><tr>
           <td style="font-size:8pt; color:{GREY}; vertical-align:top;">
             <div>Report Date: {today_str}</div>
@@ -356,10 +415,12 @@ def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None) ->
 
 
 # ---------------------------------------------------------------------------
-# PAGE 2: Executive Summary + Company Info + CF|FS start
+# CF|FS content: continuous flow (no forced page breaks)
+# Includes: Investment Thesis, Company Info, section bars, all cards, narrative
 # ---------------------------------------------------------------------------
 
-def _build_page2(ticker: str, info: dict, booth: dict, fs: dict, thesis: str) -> str:
+def _build_cf_fs_content(ticker: str, info: dict, booth: dict, fs: dict, thesis: str) -> str:
+    """Build CF|FS as one continuous flow — no forced page breaks."""
     name = info.get("longName") or info.get("shortName") or ticker
     sector = info.get("sector", "N/A")
     industry = info.get("industry", "N/A")
@@ -368,45 +429,10 @@ def _build_page2(ticker: str, info: dict, booth: dict, fs: dict, thesis: str) ->
     description = info.get("longBusinessSummary", "")
     desc_short = description[:300] + "..." if len(description) > 300 else description
 
-    # Executive Summary metrics
-    dcf = booth.get("dcf_model", {}) or {}
-    capm = booth.get("capm_alpha", {}) or {}
-    cr = fs.get("credit_rating", {}) or {}
-    az = fs.get("altman_z", {}) or {}
-    fcf_d = booth.get("free_cash_flow", {}) or {}
-    po = fs.get("pecking_order", {}) or {}
-
-    # DCF upside
-    upside_val = _safe(dcf, "upside_pct")
-    iv = _safe(dcf, "intrinsic_value_per_share")
-    upside_str = f"{upside_val:+.1f}%" if upside_val is not None else "N/A"
-    iv_str = f"Intrinsic: ${iv:,.2f}" if iv is not None else ""
-
-    # Implied rating
-    rating = cr.get("implied_rating", "N/A") if cr else "N/A"
-    score = cr.get("composite_score", "N/A") if cr else "N/A"
-    rating_sub = f"Score: {score}/8" if score != "N/A" else ""
-
-    # Altman Z
-    z_val = _safe(az, "z_score")
-    z_str = f"{z_val:.2f}" if z_val is not None else "N/A"
-    z_zone = _safe(az, "zone", "N/A")
-
-    # FCF Yield
-    fcf_yield = fcf_d.get("fcf_yield_pct") if fcf_d else None
-    fcf_yield_str = f"{fcf_yield:.2f}%" if fcf_yield is not None else "N/A"
-
-    # Jensen's Alpha
-    alpha = _safe(capm, "jensens_alpha")
-    alpha_str = f"{alpha*100:+.2f}%" if alpha is not None else "N/A"
-
-    # Pecking Order
-    po_stage = po.get("pecking_order_stage", "N/A") if po else "N/A"
-    po_net = po.get("net_score", "") if po else ""
-    po_sub = f"Net Score: {po_net}" if po_net else ""
-
     pill_style = (f"display:inline-block; background:#f1f5f9; color:#475569; "
                   f"border-radius:12px; padding:2pt 8pt; font-size:7.5pt; margin:1pt 2pt;")
+
+    # --- CF Cards ---
 
     # CAPM card
     capm_data = booth.get("capm_alpha", {}) or {}
@@ -435,94 +461,6 @@ def _build_page2(ticker: str, info: dict, booth: dict, fs: dict, thesis: str) ->
         ]) + sig, "Lecture 2B: E(R) = Rf + \u03b2[E(Rm) - Rf]. Alpha measures risk-adjusted excess return.")
     else:
         capm_content = _card("CAPM & Jensen's Alpha", '<div style="font-size:9pt; color:#53565A;">Data not available.</div>', "")
-
-    # Capital Structure card
-    cs_data = fs.get("capital_structure", {}) or {}
-    cs_content = ""
-    if cs_data:
-        nd = cs_data.get("net_debt")
-        nd_cap = cs_data.get("net_debt_to_capital")
-        nd_ebitda = cs_data.get("net_debt_to_ebitda")
-        fcf_debt = cs_data.get("fcf_to_debt")
-        de = cs_data.get("debt_to_equity_pct")
-
-        # Signal: low leverage is positive
-        positive_cs = nd_cap is not None and nd_cap < 0.4
-        sig_text = "Conservative Leverage" if positive_cs else "Elevated Leverage"
-        sig = _signal(positive_cs, sig_text) if nd_cap is not None else ""
-
-        cs_content = _card("Capital Structure", _data_rows([
-            ("Total Debt", _fmt(cs_data.get("total_debt"), "currency")),
-            ("Total Cash", _fmt(cs_data.get("total_cash"), "currency")),
-            ("Net Debt", _fmt(nd, "currency")),
-            ("Net Debt / Capital", f"{nd_cap*100:.1f}%" if nd_cap is not None else "N/A"),
-            ("Net Debt / EBITDA", f"{nd_ebitda:.2f}x" if nd_ebitda is not None else "N/A"),
-            ("FCF / Debt", f"{fcf_debt:.2f}x" if fcf_debt is not None else "N/A"),
-            ("Debt / Equity", f"{de:.1f}%" if de is not None else "N/A"),
-        ]) + sig, "D1: Optimal capital structure balances tax shield benefits against distress costs.")
-    else:
-        cs_content = _card("Capital Structure", '<div style="font-size:9pt; color:#53565A;">Data not available.</div>', "")
-
-    return f"""
-    <div style="page-break-after:always;">
-      {_page_header(ticker)}
-
-      <!-- Executive Summary -->
-      <div style="text-transform:uppercase; letter-spacing:1.5pt; font-size:10pt;
-                   color:{MAROON}; font-weight:700; margin-bottom:8pt;">Executive Summary</div>
-      <table style="width:100%; border-collapse:separate; border-spacing:6pt;">
-        <tr>
-          {_metric_box("DCF Upside/Downside", upside_str, iv_str)}
-          {_metric_box("Implied S&P Rating", rating, rating_sub)}
-          {_metric_box("Altman Z-Score", z_str, z_zone)}
-        </tr>
-        <tr>
-          {_metric_box("FCF Yield", fcf_yield_str)}
-          {_metric_box("Jensen's Alpha (\u03b1)", alpha_str)}
-          {_metric_box("Pecking Order", po_stage, po_sub)}
-        </tr>
-      </table>
-
-      <!-- Investment Thesis -->
-      {_narrative_card("Investment Thesis &middot; Powered by Elitez-CB Analysis", thesis)}
-
-      <!-- Company Info -->
-      <div style="border:1px solid {BORDER_COLOR}; border-radius:3px; padding:10pt 14pt; margin:10pt 0;">
-        <div style="font-size:14pt; font-weight:700;">{ticker}</div>
-        <div style="font-size:10pt; color:#475569;">{name}</div>
-        <div style="margin:4pt 0;">
-          <span style="{pill_style}">{sector}</span>
-          <span style="{pill_style}">{industry}</span>
-        </div>
-        <div style="font-size:8pt; color:{GREY}; margin-top:2pt;">
-          Price: {_fmt(price, "price")} &middot; Market Cap: {_fmt(mkt_cap, "currency")}
-        </div>
-        <div style="font-size:8pt; color:#475569; margin-top:4pt; line-height:1.4;">{desc_short}</div>
-      </div>
-
-      <!-- CF | FS two-column start -->
-      <table width="100%"><tr>
-        <td width="50%" valign="top" style="padding-right:6pt;">
-          {_section_bar("CB Corporate Finance")}
-          {capm_content}
-        </td>
-        <td width="50%" valign="top" style="padding-left:6pt;">
-          {_section_bar("CB Financial Strategy")}
-          {cs_content}
-        </td>
-      </tr></table>
-    </div>
-    """
-
-
-# ---------------------------------------------------------------------------
-# PAGES 3-5: CF|FS continued (two-column)
-# ---------------------------------------------------------------------------
-
-def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
-    """Build the continued CF|FS two-column pages."""
-
-    # --- CF Cards ---
 
     # Valuation Multiples
     vm = booth.get("valuation_multiples", {}) or {}
@@ -559,7 +497,6 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
             vm_rows.append(("P/S", f"{ps:.2f}x"))
             vm_rows.append(("vs Sector", _vs_sector(ps, ps_med, "P/S")))
 
-        # Overall signal based on discount/premium counts
         discount_count = 0
         total_compared = 0
         for val, med in [(pe, pe_med), (ev, ev_med), (pb, pb_med), (ps, ps_med)]:
@@ -612,7 +549,6 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
         fm = fcf_d.get("fcf_margin_pct")
         mkt_cap_fcf = fcf_d.get("market_cap") or (booth.get("wacc", {}) or {}).get("market_cap")
 
-        # P/FCF calculation
         p_fcf = None
         if fcf and fcf > 0 and mkt_cap_fcf:
             try:
@@ -648,7 +584,6 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
         positive_dcf = upside is not None and upside > 0
         sig = _signal(positive_dcf, "potentially undervalued" if positive_dcf else "potentially overvalued") if upside is not None else ""
 
-        # Margin of Safety
         mos = None
         if iv is not None and cp is not None and iv != 0:
             try:
@@ -656,10 +591,8 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
             except (ValueError, TypeError, ZeroDivisionError):
                 pass
 
-        # Market-Implied Growth (approximate as terminal growth)
         mig = tg
 
-        # Sensitivity grid - parse into proper grid format
         sens = dcf_d.get("sensitivity", {})
         sens_html = ""
         if sens:
@@ -667,17 +600,14 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
             sens_html += '<table style="width:100%; border-collapse:collapse; font-size:7.5pt;">'
 
             if isinstance(list(sens.values())[0], dict):
-                # Format: {growth_rate: {wacc_rate: value}}
                 g_keys = sorted(sens.keys())
                 first_g = g_keys[0]
                 w_keys = sorted(sens[first_g].keys()) if isinstance(sens[first_g], dict) else []
 
-                # Header row: g \ WACC, then WACC columns
                 sens_html += f'<tr><td style="padding:3pt; background:#f8fafc; border:1px solid {BORDER_COLOR}; font-weight:600;">g \\ WACC</td>'
                 for wk in w_keys:
                     sens_html += f'<td style="padding:3pt; background:#f8fafc; border:1px solid {BORDER_COLOR}; text-align:center; font-weight:600;">WACC {wk}</td>'
                 sens_html += '</tr>'
-                # Rows: each growth rate
                 for gk in g_keys:
                     sens_html += f'<tr><td style="padding:3pt; background:#f8fafc; border:1px solid {BORDER_COLOR}; font-weight:600;">g {gk}</td>'
                     for wk in w_keys:
@@ -686,7 +616,6 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
                         sens_html += f'<td style="padding:3pt; border:1px solid {BORDER_COLOR}; text-align:center;">{cell_val}</td>'
                     sens_html += '</tr>'
             else:
-                # Format: {"WACC=X%,g=Y%": value} - parse into grid
                 import re as _re
                 grid = {}
                 w_set = set()
@@ -713,7 +642,6 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
                             sens_html += f'<td style="padding:3pt; border:1px solid {BORDER_COLOR}; text-align:center;">{cell_val}</td>'
                         sens_html += '</tr>'
                 else:
-                    # Fallback: just list key-value pairs
                     for k, v in sens.items():
                         cell_val = f"${v:,.0f}" if isinstance(v, (int, float)) else str(v)
                         sens_html += f'<tr><td style="padding:3pt; border:1px solid {BORDER_COLOR};">{k}</td><td style="padding:3pt; border:1px solid {BORDER_COLOR}; text-align:center;">{cell_val}</td></tr>'
@@ -735,6 +663,32 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
 
     # --- FS Cards ---
 
+    # Capital Structure card
+    cs_data = fs.get("capital_structure", {}) or {}
+    cs_content = ""
+    if cs_data:
+        nd = cs_data.get("net_debt")
+        nd_cap = cs_data.get("net_debt_to_capital")
+        nd_ebitda = cs_data.get("net_debt_to_ebitda")
+        fcf_debt = cs_data.get("fcf_to_debt")
+        de = cs_data.get("debt_to_equity_pct")
+
+        positive_cs = nd_cap is not None and nd_cap < 0.4
+        sig_text = "Conservative Leverage" if positive_cs else "Elevated Leverage"
+        sig = _signal(positive_cs, sig_text) if nd_cap is not None else ""
+
+        cs_content = _card("Capital Structure", _data_rows([
+            ("Total Debt", _fmt(cs_data.get("total_debt"), "currency")),
+            ("Total Cash", _fmt(cs_data.get("total_cash"), "currency")),
+            ("Net Debt", _fmt(nd, "currency")),
+            ("Net Debt / Capital", f"{nd_cap*100:.1f}%" if nd_cap is not None else "N/A"),
+            ("Net Debt / EBITDA", f"{nd_ebitda:.2f}x" if nd_ebitda is not None else "N/A"),
+            ("FCF / Debt", f"{fcf_debt:.2f}x" if fcf_debt is not None else "N/A"),
+            ("Debt / Equity", f"{de:.1f}%" if de is not None else "N/A"),
+        ]) + sig, "D1: Optimal capital structure balances tax shield benefits against distress costs.")
+    else:
+        cs_content = _card("Capital Structure", '<div style="font-size:9pt; color:#53565A;">Data not available.</div>', "")
+
     # Credit Rating
     cr_d = fs.get("credit_rating", {}) or {}
     cr_content = ""
@@ -746,7 +700,6 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
         ebit_int = cr_d.get("ebit_to_interest")
         ebitda_int = cr_d.get("ebitda_to_interest")
 
-        # Investment grade check
         ig_ratings = ["AAA", "AA+", "AA", "AA-", "A+", "A", "A-", "BBB+", "BBB", "BBB-"]
         is_ig = rating in ig_ratings
         grade_badge = (f'<div style="display:inline-block; background:{GREEN_BG}; color:{GREEN}; '
@@ -757,7 +710,6 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
                        f'border:1px solid {RED}; border-radius:4px; padding:2pt 8pt; '
                        f'font-size:8pt; font-weight:600;">Speculative Grade</div>')
 
-        # Default probability mapping
         def _default_prob(r):
             if r in ("AAA", "AA+", "AA", "AA-", "A+", "A", "A-"):
                 return "0.0%"
@@ -797,10 +749,8 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
         ic = sto_d.get("interest_coverage")
         assess = sto_d.get("assessment", "")
 
-        # Get market cap for scoring thresholds
         cs_mkt = (fs.get("capital_structure", {}) or {}).get("market_cap") or (fs.get("payout_policy", {}) or {}).get("market_cap") or 1
 
-        # Calculate scores
         try:
             mkt_f = float(cs_mkt) if cs_mkt else 1
         except (ValueError, TypeError):
@@ -811,7 +761,6 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
         dist_score = -4 if pvdc and float(pvdc) > mkt_f * 0.1 else (-2 if pvdc and float(pvdc) > mkt_f * 0.03 else 0)
         net_score = ts_score + disc_score + dist_score
 
-        # Explanatory text
         ts_explain = "insufficient data" if not pvts or float(pvts) == 0 else f"tax shield = {_fmt(pvts, 'currency')}"
         disc_explain = "insufficient data" if not pvdb or float(pvdb) == 0 else f"discipline benefit = {_fmt(pvdb, 'currency')}"
         dist_explain = "insufficient data" if not pvdc or float(pvdc) == 0 else f"distress cost = {_fmt(pvdc, 'currency')}"
@@ -850,7 +799,6 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
         revenue_pp = pp_d.get("revenue")
         net_debt_pp = pp_d.get("net_debt")
 
-        # Cash / Revenue
         cash_rev = None
         if total_cash_pp and revenue_pp:
             try:
@@ -858,12 +806,10 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
             except (ValueError, TypeError, ZeroDivisionError):
                 pass
 
-        # Net Cash?
         net_cash_str = "N/A"
         if net_debt_pp is not None:
             net_cash_str = "yes (net cash)" if float(net_debt_pp) < 0 else "no (net debt)"
 
-        # Tax Drag / Mkt Cap
         td_mkt = None
         if td and mkt_cap_pp:
             try:
@@ -871,7 +817,6 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
             except (ValueError, TypeError, ZeroDivisionError):
                 pass
 
-        # Signal: amber when excess > 0 and low dividend
         if excess is not None and float(excess) > 0 and (dy is None or dy < 0.02):
             sig = _signal_amber("excess cash with minimal payout")
         else:
@@ -934,14 +879,11 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
         dm = po_d.get("debt_to_mktcap")
         stage = po_d.get("pecking_order_stage", "N/A")
 
-        # Get net_debt_to_ebitda from capital structure for debt level display
         cs_nd_ebitda = (fs.get("capital_structure", {}) or {}).get("net_debt_to_ebitda")
         debt_level_display = f"{cs_nd_ebitda:.1f}x EBITDA" if cs_nd_ebitda is not None else (dl if dl else "N/A")
 
-        # Get price_to_book from info (passed via fs context or po_d)
         ptb_po = po_d.get("price_to_book")
 
-        # Calculate pecking order score 0-4
         po_score = 0
         if fcf_po is not None and capex is not None and float(fcf_po) > abs(float(capex)):
             po_score += 1
@@ -963,13 +905,42 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
             ("Price / Book", f"{ptb_po:.2f}x" if ptb_po is not None else "N/A"),
         ]) + sig, "Myers-Majluf: Firms prefer internal funds > debt > equity due to information asymmetry.")
 
-    # Build two-column pages
-    cf_cards = vm_content + wacc_content + fcf_content + dcf_content
-    fs_cards = cr_content + sto_content + pp_content + az_content + po_content
+    # Assemble CF and FS card columns
+    cf_cards = capm_content + vm_content + wacc_content + fcf_content + dcf_content
+    fs_cards = cs_content + cr_content + sto_content + pp_content + az_content + po_content
 
     return f"""
-    <div style="page-break-after:always;">
+    <div>
       {_page_header(ticker)}
+
+      <!-- Investment Thesis -->
+      {_narrative_card("Investment Thesis &middot; Powered by Elitez-CB Analysis", thesis)}
+
+      <!-- Company Info -->
+      <div style="border:1px solid {BORDER_COLOR}; border-radius:3px; padding:10pt 14pt; margin:10pt 0; page-break-inside:avoid;">
+        <div style="font-size:14pt; font-weight:700;">{ticker}</div>
+        <div style="font-size:10pt; color:#475569;">{name}</div>
+        <div style="margin:4pt 0;">
+          <span style="{pill_style}">{sector}</span>
+          <span style="{pill_style}">{industry}</span>
+        </div>
+        <div style="font-size:8pt; color:{GREY}; margin-top:2pt;">
+          Price: {_fmt(price, "price")} &middot; Market Cap: {_fmt(mkt_cap, "currency")}
+        </div>
+        <div style="font-size:8pt; color:#475569; margin-top:4pt; line-height:1.4;">{desc_short}</div>
+      </div>
+
+      <!-- Section bars side by side -->
+      <table width="100%"><tr>
+        <td width="50%" valign="top" style="padding-right:6pt;">
+          {_section_bar("CB Corporate Finance")}
+        </td>
+        <td width="50%" valign="top" style="padding-left:6pt;">
+          {_section_bar("CB Financial Strategy")}
+        </td>
+      </tr></table>
+
+      <!-- Card content side by side -->
       <table width="100%"><tr>
         <td width="50%" valign="top" style="padding-right:6pt;">
           {cf_cards}
@@ -978,20 +949,18 @@ def _build_cf_fs_pages(ticker: str, booth: dict, fs: dict, thesis: str) -> str:
           {fs_cards}
         </td>
       </tr></table>
-    </div>
 
-    <div style="page-break-after:always;">
-      {_page_header(ticker)}
+      <!-- CF+FS Thesis narrative - full width -->
       {_narrative_card("CF + FS Investment Thesis &middot; Powered by Elitez-CB Analysis", thesis)}
     </div>
     """
 
 
 # ---------------------------------------------------------------------------
-# PAGE 6: Operations Management
+# Operations Management content: cards + narrative together (no forced break)
 # ---------------------------------------------------------------------------
 
-def _build_om_page(ticker: str, om: dict) -> str:
+def _build_om_content(ticker: str, om: dict, om_narrative: str) -> str:
     # Supply Chain
     sc = om.get("supply_chain", {}) or {}
     sc_content = ""
@@ -1088,7 +1057,7 @@ def _build_om_page(ticker: str, om: dict) -> str:
         ]) + sig, "S7/S8: Bullwhip effect amplifies demand signal variance up the supply chain. Ratio > 1 indicates amplification.")
 
     return f"""
-    <div style="page-break-after:always;">
+    <div>
       {_page_header(ticker)}
       {_section_bar("CB Operations Management")}
       <table width="100%"><tr>
@@ -1101,28 +1070,18 @@ def _build_om_page(ticker: str, om: dict) -> str:
           {dv_content}
         </td>
       </tr></table>
-    </div>
-    """
 
-
-# ---------------------------------------------------------------------------
-# PAGE 7: OM Narrative
-# ---------------------------------------------------------------------------
-
-def _build_om_narrative_page(ticker: str, om_narrative: str) -> str:
-    return f"""
-    <div style="page-break-after:always;">
-      {_page_header(ticker)}
+      <!-- OM Narrative flows right after cards -->
       {_narrative_card("OM Narrative &middot; Powered by Elitez-CB Analysis", om_narrative)}
     </div>
     """
 
 
 # ---------------------------------------------------------------------------
-# PAGE 8: Competitive Strategy
+# Competitive Strategy content: cards + narrative together (no forced break)
 # ---------------------------------------------------------------------------
 
-def _build_cs_page(ticker: str, cs: dict, cs_narrative: str) -> str:
+def _build_cs_content(ticker: str, cs: dict, cs_narrative: str) -> str:
     # Competitive Moat
     moat = cs.get("competitive_moat", {}) or {}
     moat_content = ""
@@ -1137,7 +1096,6 @@ def _build_cs_page(ticker: str, cs: dict, cs_narrative: str) -> str:
         roe = moat.get("roe")
         roa = moat.get("roa")
 
-        # Score display
         score_rows = []
         for dim, val in scores.items():
             dim_label = dim.replace("_", " ").title()
@@ -1218,7 +1176,7 @@ def _build_cs_page(ticker: str, cs: dict, cs_narrative: str) -> str:
             "Session 2: Market positioning analysis based on Porter's generic strategies and competitive dynamics.")
 
     return f"""
-    <div style="page-break-after:always;">
+    <div>
       {_page_header(ticker)}
       {_section_bar("CB Competitive Strategy")}
       <table width="100%"><tr>
@@ -1233,18 +1191,19 @@ def _build_cs_page(ticker: str, cs: dict, cs_narrative: str) -> str:
         </td>
       </tr></table>
 
+      <!-- CS Narrative flows right after cards -->
       {_narrative_card("Competitive Strategy Narrative &middot; Powered by Elitez-CB Analysis", cs_narrative)}
     </div>
     """
 
 
 # ---------------------------------------------------------------------------
-# PAGE 9: Disclaimers
+# Disclaimers
 # ---------------------------------------------------------------------------
 
 def _build_disclaimers(ticker: str, today_str: str) -> str:
     return f"""
-    <div>
+    <div style="page-break-inside:avoid; page-break-after:avoid;">
       {_page_header(ticker)}
       {_section_bar("Important Disclosures & Disclaimer")}
 
@@ -1296,8 +1255,8 @@ def _build_disclaimers(ticker: str, today_str: str) -> str:
         </tr></table>
       </div>
 
-      <!-- Dark maroon band -->
-      <div style="background:{MAROON}; height:80pt; margin-top:12pt;"></div>
+      <!-- Dark maroon band (reduced from 80pt to 8pt to avoid empty last page) -->
+      <div style="background:{MAROON}; height:8pt; margin-top:12pt;"></div>
     </div>
     """
 
@@ -1373,25 +1332,21 @@ def _build_html(
     }}
     """
 
-    page1 = _build_cover(ticker, info, today_str, booth)
-    page2 = _build_page2(ticker, info, booth, fs, thesis)
-    pages3_5 = _build_cf_fs_pages(ticker, booth, fs, thesis)
-    page6 = _build_om_page(ticker, om)
-    page7 = _build_om_narrative_page(ticker, om_narrative)
-    page8 = _build_cs_page(ticker, cs, cs_narrative)
-    page9 = _build_disclaimers(ticker, today_str)
+    page1 = _build_cover(ticker, info, today_str, booth, fs)
+    cf_fs = _build_cf_fs_content(ticker, info, booth, fs, thesis)
+    om_content = _build_om_content(ticker, om, om_narrative)
+    cs_content = _build_cs_content(ticker, cs, cs_narrative)
+    disclaimers = _build_disclaimers(ticker, today_str)
 
     html = f"""<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"><style>{css}</style></head>
 <body>
 {page1}
-{page2}
-{pages3_5}
-{page6}
-{page7}
-{page8}
-{page9}
+{cf_fs}
+{om_content}
+{cs_content}
+{disclaimers}
 </body>
 </html>"""
     return html
