@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.DS_Store
+.streamlit/secrets.toml
+Competitive Strategy Lecture Slides/
+Corporate Finance Lecture notes/
+Financial Strategy Lecture notes/
+Operations Management, post handout/
