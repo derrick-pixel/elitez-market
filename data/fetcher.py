@@ -85,79 +85,131 @@ def _safe_df(ticker_obj, attr: str) -> Optional[pd.DataFrame]:
 
 
 # ---------------------------------------------------------------------------
-# Source 2: Yahoo Finance direct JSON (different endpoint, more reliable)
+# Source 2: Yahoo Finance direct JSON with crumb authentication
 # ---------------------------------------------------------------------------
 
-_YF_QUOTE_URL = "https://query1.finance.yahoo.com/v7/finance/quote"
+_YF_UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+_YF_SUMMARY_URL = "https://query2.finance.yahoo.com/v10/finance/quoteSummary/{ticker}"
 _YF_CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
-_YF_HEADERS = {"User-Agent": "Mozilla/5.0"}
+
+# Module-level crumb cache
+_yf_crumb: Optional[str] = None
+_yf_cookies: Optional[dict] = None
+
+
+def _get_yahoo_crumb() -> tuple:
+    """Get Yahoo Finance crumb + cookies for authenticated requests."""
+    global _yf_crumb, _yf_cookies
+    if _yf_crumb and _yf_cookies:
+        return _yf_crumb, _yf_cookies
+    try:
+        sess = requests.Session()
+        sess.headers["User-Agent"] = _YF_UA
+        # Get cookie from Yahoo
+        sess.get("https://fc.yahoo.com", timeout=5)
+        # Get crumb
+        r = sess.get("https://query2.finance.yahoo.com/v1/test/getcrumb", timeout=5)
+        r.raise_for_status()
+        _yf_crumb = r.text.strip()
+        _yf_cookies = dict(sess.cookies)
+        return _yf_crumb, _yf_cookies
+    except Exception as e:
+        logger.warning("Yahoo crumb auth failed: %s", e)
+        return None, None
 
 
 def _fetch_yahoo_direct(ticker: str) -> Optional[StockData]:
-    """Fetch from Yahoo Finance REST API directly (bypasses yfinance library)."""
+    """Fetch from Yahoo Finance quoteSummary API with crumb auth."""
     try:
-        # Quote data
-        r = requests.get(
-            _YF_QUOTE_URL,
-            params={"symbols": ticker, "fields": "shortName,longName,sector,industry,"
-                    "regularMarketPrice,marketCap,trailingPE,forwardPE,epsTrailingTwelveMonths,"
-                    "dividendYield,fiftyTwoWeekHigh,fiftyTwoWeekLow,priceToBook,beta,"
-                    "profitMargins,returnOnEquity,revenueGrowth,totalRevenue,ebitda,"
-                    "freeCashflow,totalDebt,totalCash,operatingMargins,grossMargins,"
-                    "returnOnAssets,earningsGrowth,priceToSalesTrailing12Months,"
-                    "enterpriseToEbitda,sharesOutstanding,longBusinessSummary,"
-                    "debtToEquity"},
-            headers=_YF_HEADERS,
-            timeout=10,
-        )
-        r.raise_for_status()
-        data = r.json()
-        quotes = data.get("quoteResponse", {}).get("result", [])
-        if not quotes:
+        crumb, cookies = _get_yahoo_crumb()
+        if not crumb:
             return None
 
-        q = quotes[0]
-        price = q.get("regularMarketPrice")
-        if not price:
+        modules = "price,summaryProfile,summaryDetail,defaultKeyStatistics,financialData"
+        url = _YF_SUMMARY_URL.format(ticker=ticker)
+        r = requests.get(
+            url,
+            params={"modules": modules, "crumb": crumb},
+            cookies=cookies,
+            headers={"User-Agent": _YF_UA},
+            timeout=10,
+        )
+        if r.status_code == 401:
+            # Crumb expired, reset and retry once
+            global _yf_crumb, _yf_cookies
+            _yf_crumb, _yf_cookies = None, None
+            crumb, cookies = _get_yahoo_crumb()
+            if not crumb:
+                return None
+            r = requests.get(
+                url,
+                params={"modules": modules, "crumb": crumb},
+                cookies=cookies,
+                headers={"User-Agent": _YF_UA},
+                timeout=10,
+            )
+        r.raise_for_status()
+        data = r.json()
+        result = data.get("quoteSummary", {}).get("result", [])
+        if not result:
+            return None
+
+        # Extract from modules
+        price_mod = result[0].get("price", {})
+        profile = result[0].get("summaryProfile", {})
+        detail = result[0].get("summaryDetail", {})
+        stats = result[0].get("defaultKeyStatistics", {})
+        fin = result[0].get("financialData", {})
+
+        def _raw(d, key):
+            """Extract raw value from Yahoo's {raw: X, fmt: Y} format."""
+            v = d.get(key, {})
+            if isinstance(v, dict):
+                return v.get("raw")
+            return v
+
+        price_val = _raw(price_mod, "regularMarketPrice")
+        if not price_val:
             return None
 
         info = {
-            "shortName": q.get("shortName", ticker),
-            "longName": q.get("longName") or q.get("shortName", ticker),
-            "sector": q.get("sector", ""),
-            "industry": q.get("industry", ""),
-            "currentPrice": price,
-            "regularMarketPrice": price,
-            "previousClose": q.get("regularMarketPreviousClose"),
-            "marketCap": q.get("marketCap"),
-            "sharesOutstanding": q.get("sharesOutstanding"),
-            "trailingPE": q.get("trailingPE"),
-            "forwardPE": q.get("forwardPE"),
-            "trailingEps": q.get("epsTrailingTwelveMonths"),
-            "dividendYield": q.get("dividendYield"),
-            "priceToBook": q.get("priceToBook"),
-            "priceToSalesTrailing12Months": q.get("priceToSalesTrailing12Months"),
-            "enterpriseToEbitda": q.get("enterpriseToEbitda"),
-            "fiftyTwoWeekHigh": q.get("fiftyTwoWeekHigh"),
-            "fiftyTwoWeekLow": q.get("fiftyTwoWeekLow"),
-            "beta": q.get("beta"),
-            "profitMargins": q.get("profitMargins"),
-            "grossMargins": q.get("grossMargins"),
-            "operatingMargins": q.get("operatingMargins"),
-            "returnOnEquity": q.get("returnOnEquity"),
-            "returnOnAssets": q.get("returnOnAssets"),
-            "revenueGrowth": q.get("revenueGrowth"),
-            "earningsGrowth": q.get("earningsGrowth"),
-            "debtToEquity": q.get("debtToEquity"),
-            "totalRevenue": q.get("totalRevenue"),
-            "ebitda": q.get("ebitda"),
-            "freeCashflow": q.get("freeCashflow"),
-            "totalDebt": q.get("totalDebt"),
-            "totalCash": q.get("totalCash"),
-            "longBusinessSummary": q.get("longBusinessSummary", ""),
+            "shortName": price_mod.get("shortName", ticker),
+            "longName": price_mod.get("longName") or price_mod.get("shortName", ticker),
+            "sector": profile.get("sector", ""),
+            "industry": profile.get("industry", ""),
+            "currentPrice": price_val,
+            "regularMarketPrice": price_val,
+            "previousClose": _raw(detail, "previousClose"),
+            "marketCap": _raw(price_mod, "marketCap"),
+            "sharesOutstanding": _raw(stats, "sharesOutstanding"),
+            "trailingPE": _raw(detail, "trailingPE"),
+            "forwardPE": _raw(detail, "forwardPE") or _raw(stats, "forwardPE"),
+            "trailingEps": _raw(stats, "trailingEps"),
+            "dividendYield": _raw(detail, "dividendYield"),
+            "priceToBook": _raw(stats, "priceToBook"),
+            "priceToSalesTrailing12Months": _raw(detail, "priceToSalesTrailing12Months"),
+            "enterpriseToEbitda": _raw(stats, "enterpriseToEbitda"),
+            "fiftyTwoWeekHigh": _raw(detail, "fiftyTwoWeekHigh"),
+            "fiftyTwoWeekLow": _raw(detail, "fiftyTwoWeekLow"),
+            "beta": _raw(detail, "beta") or _raw(stats, "beta"),
+            "profitMargins": _raw(stats, "profitMargins") or _raw(fin, "profitMargins"),
+            "grossMargins": _raw(fin, "grossMargins"),
+            "operatingMargins": _raw(fin, "operatingMargins"),
+            "returnOnEquity": _raw(fin, "returnOnEquity"),
+            "returnOnAssets": _raw(fin, "returnOnAssets"),
+            "revenueGrowth": _raw(fin, "revenueGrowth"),
+            "earningsGrowth": _raw(fin, "earningsGrowth"),
+            "debtToEquity": _raw(fin, "debtToEquity"),
+            "totalRevenue": _raw(fin, "totalRevenue"),
+            "ebitda": _raw(fin, "ebitda"),
+            "freeCashflow": _raw(fin, "freeCashflow"),
+            "totalDebt": _raw(fin, "totalDebt"),
+            "totalCash": _raw(fin, "totalCash"),
+            "operatingCashflow": _raw(fin, "operatingCashflow"),
+            "longBusinessSummary": profile.get("longBusinessSummary", ""),
         }
 
-        # Chart data for price history
+        # Chart data for price history (v8 works without auth)
         history = _fetch_yahoo_chart(ticker)
 
         return StockData(
@@ -166,18 +218,18 @@ def _fetch_yahoo_direct(ticker: str) -> Optional[StockData]:
             history=history,
         )
     except Exception as e:
-        logger.warning("Yahoo direct JSON failed for %s: %s", ticker, e)
+        logger.warning("Yahoo direct failed for %s: %s", ticker, e)
         return None
 
 
 def _fetch_yahoo_chart(ticker: str) -> Optional[pd.DataFrame]:
-    """Fetch 1-year daily chart from Yahoo Finance REST API."""
+    """Fetch 1-year daily chart from Yahoo v8 API (no auth needed)."""
     try:
         url = _YF_CHART_URL.format(ticker=ticker)
         r = requests.get(
             url,
             params={"range": "1y", "interval": "1d"},
-            headers=_YF_HEADERS,
+            headers={"User-Agent": _YF_UA},
             timeout=10,
         )
         r.raise_for_status()
