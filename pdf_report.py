@@ -36,30 +36,25 @@ RED_BG = "#fef2f2"
 AMBER_BG = "#fffbeb"
 
 # ---------------------------------------------------------------------------
-# Logo SVG — Elitez Group cross-style logo (white on transparent)
+# Logo — Elitez Group white PNG (886x886, RGBA, white on transparent)
+# Loaded from file and embedded as base64 for PDF generation
 # ---------------------------------------------------------------------------
-_LOGO_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 70">
-  <text x="0" y="36" font-family="Helvetica,Arial,sans-serif" font-size="32" font-weight="700"
-        fill="white" letter-spacing="8">ELI</text>
-  <text x="82" y="36" font-family="serif" font-size="36" font-weight="400"
-        fill="white">&#x271D;</text>
-  <text x="102" y="36" font-family="Helvetica,Arial,sans-serif" font-size="32" font-weight="700"
-        fill="white" letter-spacing="8">EZ</text>
-  <text x="0" y="56" font-family="Helvetica,Arial,sans-serif" font-size="9" font-weight="400"
-        fill="rgba(255,255,255,0.7)" letter-spacing="3">GROUP OF COMPANIES</text>
-</svg>"""
-_LOGO_B64 = base64.b64encode(_LOGO_SVG.encode()).decode()
+import pathlib as _pathlib
 
-# Smaller version for page headers and footers
-_LOGO_SVG_SM = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 22">
-  <text x="0" y="16" font-family="Helvetica,Arial,sans-serif" font-size="16" font-weight="700"
-        fill="#9B1B30" letter-spacing="4">ELI</text>
-  <text x="43" y="16" font-family="serif" font-size="18" font-weight="400"
-        fill="#9B1B30">&#x271D;</text>
-  <text x="55" y="16" font-family="Helvetica,Arial,sans-serif" font-size="16" font-weight="700"
-        fill="#9B1B30" letter-spacing="4">EZ</text>
-</svg>"""
-_LOGO_B64_SM = base64.b64encode(_LOGO_SVG_SM.encode()).decode()
+_LOGO_PATH = _pathlib.Path(__file__).resolve().parent / "assets" / "elitez_logo_white.png"
+# If running from project root (Streamlit), also check there
+if not _LOGO_PATH.is_file():
+    _LOGO_PATH = _pathlib.Path("assets") / "elitez_logo_white.png"
+
+def _load_logo_b64():
+    try:
+        with open(_LOGO_PATH, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    except FileNotFoundError:
+        return ""
+
+_LOGO_B64 = _load_logo_b64()
+_LOGO_B64_SM = _LOGO_B64  # same PNG, sized differently via HTML height attr
 
 
 # ---------------------------------------------------------------------------
@@ -363,7 +358,7 @@ def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None, fs
         <!-- Logo + Company Name -->
         <table width="100%"><tr>
           <td style="vertical-align:middle;">
-            <img src="data:image/svg+xml;base64,{_LOGO_B64}" height="50" />
+            <img src="data:image/png;base64,{_LOGO_B64}" height="50" />
           </td>
           <td style="vertical-align:middle; padding-left:16pt;">
             <div style="color:white; font-size:22pt; font-weight:700; letter-spacing:2pt;
@@ -1259,7 +1254,7 @@ def _build_disclaimers(ticker: str, today_str: str) -> str:
         <table width="100%"><tr>
           <td style="vertical-align:top;">
             <div>
-              <img src="data:image/svg+xml;base64,{_LOGO_B64_SM}" height="20" style="vertical-align:middle;" />
+              <img src="data:image/png;base64,{_LOGO_B64_SM}" height="20" style="vertical-align:middle;" />
               <span style="font-size:9pt; font-weight:700; color:{MAROON}; margin-left:8pt;
                            vertical-align:middle;">ELITEZ ASIA'S ANALYTICS</span>
             </div>
