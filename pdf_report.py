@@ -41,17 +41,20 @@ AMBER_BG = "#fffbeb"
 # ---------------------------------------------------------------------------
 import pathlib as _pathlib
 
-_LOGO_PATH = _pathlib.Path(__file__).resolve().parent / "assets" / "elitez_logo_white.png"
-# If running from project root (Streamlit), also check there
-if not _LOGO_PATH.is_file():
-    _LOGO_PATH = _pathlib.Path("assets") / "elitez_logo_white.png"
-
 def _load_logo_b64():
-    try:
-        with open(_LOGO_PATH, "rb") as f:
-            return base64.b64encode(f.read()).decode()
-    except FileNotFoundError:
-        return ""
+    """Load logo from multiple possible paths (handles Streamlit Cloud)."""
+    candidates = [
+        _pathlib.Path(__file__).resolve().parent / "assets" / "elitez_logo_white.png",
+        _pathlib.Path("assets") / "elitez_logo_white.png",
+        _pathlib.Path("/mount/src/elitez-market/assets/elitez_logo_white.png"),
+    ]
+    for p in candidates:
+        try:
+            with open(p, "rb") as f:
+                return base64.b64encode(f.read()).decode()
+        except (FileNotFoundError, OSError):
+            continue
+    return ""
 
 _LOGO_B64 = _load_logo_b64()
 _LOGO_B64_SM = _LOGO_B64  # same PNG, sized differently via HTML height attr
