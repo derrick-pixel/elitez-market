@@ -1,5 +1,5 @@
 """
-Adept Academy — Market Tracker
+Elitez Asia's Analytics — Market Tracker
 Two-page Streamlit app: Dashboard + CB Analysis
 """
 
@@ -37,13 +37,13 @@ logger = logging.getLogger(__name__)
 # Page config
 # ---------------------------------------------------------------------------
 st.set_page_config(
-    page_title="Market Tracker — Adept Academy",
+    page_title="Market Tracker — Elitez Asia",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-MAROON = "#4A2811"  # Dark Brown (was "#9B1B30" maroon)
+MAROON = "#9B1B30"
 GREY = "#53565A"
 
 # ---------------------------------------------------------------------------
@@ -116,7 +116,7 @@ st.markdown(f"""
         font-weight: 600;
     }}
     .ai-narrative {{
-        background: #fdf8f0;
+        background: #fafafa;
         border-left: 3px solid {MAROON};
         border-top: 2px solid {MAROON};
         border-radius: 0px;
@@ -203,7 +203,7 @@ st.markdown(f"""
     }}
     .exec-box {{
         background: #ffffff;
-        border: 1px solid #D4A017;
+        border: 1px solid #e2e8f0;
         border-radius: 2px;
         padding: 1rem 1.2rem;
         text-align: center;
@@ -241,7 +241,7 @@ st.markdown(f"""
         margin-bottom: 0;
     }}
     .ai-body {{
-        background: #fdf8f0;
+        background: #fafafa;
         border: 1px solid #e2e8f0;
         border-top: none;
         border-radius: 0 0 2px 2px;
@@ -374,7 +374,7 @@ def _cached_cs(ticker):
 
 def page_dashboard():
     st.markdown('<div class="main-header">Market Tracker</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sub-header">Adept Academy — Global Market Overview</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub-header">Elitez Asia\'s Analytics — Global Market Overview</div>', unsafe_allow_html=True)
 
     # --- Major Indices ---
     st.subheader("Major Indices")
@@ -1530,7 +1530,7 @@ def page_cb_analysis():
 
         if description:
             st.markdown(f"""<div style="border-left:3px solid {MAROON}; padding:0.8rem 1rem; margin:0.8rem 0;
-                background:#fdf8f0; font-size:0.9rem; line-height:1.6; color:#475569; border-radius:0 3px 3px 0;">
+                background:#fafafa; font-size:0.9rem; line-height:1.6; color:#475569; border-radius:0 3px 3px 0;">
                 {description[:600] + '...' if len(description) > 600 else description}
             </div>""", unsafe_allow_html=True)
 
@@ -1546,7 +1546,7 @@ def page_cb_analysis():
 
         # ====== INVESTMENT THESIS AI ======
         st.markdown(
-            '<div class="ai-header">INVESTMENT THESIS \u00b7 AI ANALYSIS \u00b7 POWERED BY ADEPT-CB ANALYSIS</div>',
+            '<div class="ai-header">INVESTMENT THESIS \u00b7 AI ANALYSIS \u00b7 POWERED BY ELITEZ-CB ANALYSIS</div>',
             unsafe_allow_html=True,
         )
         with st.spinner("Generating investment thesis..."):
@@ -1572,7 +1572,7 @@ def page_cb_analysis():
 
         # ====== CF+FS THESIS AI (full-width) ======
         _ai_block(
-            "CF + FS THESIS \u00b7 AI ANALYSIS \u00b7 POWERED BY ADEPT-CB ANALYSIS",
+            "CF + FS THESIS \u00b7 AI ANALYSIS \u00b7 POWERED BY ELITEZ-CB ANALYSIS",
             _md(thesis) if thesis else "<em>No thesis generated.</em>",
         )
 
@@ -1581,7 +1581,7 @@ def page_cb_analysis():
 
         # OM Narrative AI
         st.markdown(
-            '<div class="ai-header">OPERATIONS MANAGEMENT \u00b7 AI NARRATIVE \u00b7 POWERED BY ADEPT-CB ANALYSIS</div>',
+            '<div class="ai-header">OPERATIONS MANAGEMENT \u00b7 AI NARRATIVE \u00b7 POWERED BY ELITEZ-CB ANALYSIS</div>',
             unsafe_allow_html=True,
         )
         with st.spinner("Generating operations narrative..."):
@@ -1599,7 +1599,7 @@ def page_cb_analysis():
 
         # CS Narrative AI
         st.markdown(
-            '<div class="ai-header">COMPETITIVE STRATEGY \u00b7 AI NARRATIVE \u00b7 POWERED BY ADEPT-CB ANALYSIS</div>',
+            '<div class="ai-header">COMPETITIVE STRATEGY \u00b7 AI NARRATIVE \u00b7 POWERED BY ELITEZ-CB ANALYSIS</div>',
             unsafe_allow_html=True,
         )
         with st.spinner("Generating strategy narrative..."):
@@ -1644,7 +1644,7 @@ def page_cb_analysis():
 with st.sidebar:
     st.markdown(f"""
     <div style="text-align:center; padding:1rem 0;">
-        <div style="font-size:1.3rem; font-weight:700; color:{MAROON};">Adept Academy</div>
+        <div style="font-size:1.3rem; font-weight:700; color:{MAROON};">Elitez Asia's Analytics</div>
         <div style="font-size:0.75rem; color:{GREY}; letter-spacing:2px; text-transform:uppercase;">CB Research Framework</div>
     </div>
     """, unsafe_allow_html=True)
