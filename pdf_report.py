@@ -36,19 +36,30 @@ RED_BG = "#fef2f2"
 AMBER_BG = "#fffbeb"
 
 # ---------------------------------------------------------------------------
-# Logo SVG
+# Logo SVG — Elitez Group cross-style logo (white on transparent)
 # ---------------------------------------------------------------------------
-_LOGO_SVG_SMALL = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 28">
-  <rect width="100" height="28" rx="4" fill="#9B1B30"/>
-  <text x="8" y="21" font-family="Helvetica,Arial,sans-serif" font-size="18" font-weight="700" fill="white">ELITEZ</text>
+_LOGO_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 70">
+  <text x="0" y="36" font-family="Helvetica,Arial,sans-serif" font-size="32" font-weight="700"
+        fill="white" letter-spacing="8">ELI</text>
+  <text x="82" y="36" font-family="serif" font-size="36" font-weight="400"
+        fill="white">&#x271D;</text>
+  <text x="102" y="36" font-family="Helvetica,Arial,sans-serif" font-size="32" font-weight="700"
+        fill="white" letter-spacing="8">EZ</text>
+  <text x="0" y="56" font-family="Helvetica,Arial,sans-serif" font-size="9" font-weight="400"
+        fill="rgba(255,255,255,0.7)" letter-spacing="3">GROUP OF COMPANIES</text>
 </svg>"""
-_LOGO_B64_SMALL = base64.b64encode(_LOGO_SVG_SMALL.encode()).decode()
+_LOGO_B64 = base64.b64encode(_LOGO_SVG.encode()).decode()
 
-_LOGO_SVG_LARGE = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 44">
-  <rect width="160" height="44" rx="6" fill="#9B1B30"/>
-  <text x="12" y="32" font-family="Helvetica,Arial,sans-serif" font-size="28" font-weight="700" fill="white">ELITEZ</text>
+# Smaller version for page headers and footers
+_LOGO_SVG_SM = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 22">
+  <text x="0" y="16" font-family="Helvetica,Arial,sans-serif" font-size="16" font-weight="700"
+        fill="#9B1B30" letter-spacing="4">ELI</text>
+  <text x="43" y="16" font-family="serif" font-size="18" font-weight="400"
+        fill="#9B1B30">&#x271D;</text>
+  <text x="55" y="16" font-family="Helvetica,Arial,sans-serif" font-size="16" font-weight="700"
+        fill="#9B1B30" letter-spacing="4">EZ</text>
 </svg>"""
-_LOGO_B64_LARGE = base64.b64encode(_LOGO_SVG_LARGE.encode()).decode()
+_LOGO_B64_SM = base64.b64encode(_LOGO_SVG_SM.encode()).decode()
 
 
 # ---------------------------------------------------------------------------
@@ -346,27 +357,36 @@ def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None, fs
 
     return f"""
     <div style="page-break-after:always;">
-      <!-- Header bar — bleeds outside page margins -->
-      <div style="background:{MAROON}; padding:28pt 24pt 18pt 24pt;
+      <!-- Header band — tall maroon, bleeds full-width -->
+      <div style="background:{MAROON}; padding:36pt 28pt 28pt 28pt;
                    margin:0 -1.5cm 0 -1.5cm;">
+        <!-- Logo + Company Name -->
         <table width="100%"><tr>
-          <td style="vertical-align:top;">
-            <div style="color:white; font-size:28pt; font-weight:700; letter-spacing:3pt;
-                        font-family:Helvetica,Arial,sans-serif;">ELITEZ</div>
-            <div style="color:rgba(255,255,255,0.85); font-size:8pt; font-weight:600;
-                        letter-spacing:2pt; text-transform:uppercase; margin-top:6pt;">CB Research Framework</div>
+          <td style="vertical-align:middle;">
+            <img src="data:image/svg+xml;base64,{_LOGO_B64}" height="50" />
           </td>
-          <td style="text-align:right; vertical-align:top; padding-top:6pt;">
-            <div style="color:white; font-size:10pt; font-weight:600; letter-spacing:2pt;
-                        text-transform:uppercase;">Equity Research Report</div>
-            <div style="color:rgba(255,255,255,0.6); font-size:8pt; margin-top:3pt;
-                        letter-spacing:1pt;">CB CF &middot; FS &middot; OM</div>
+          <td style="vertical-align:middle; padding-left:16pt;">
+            <div style="color:white; font-size:22pt; font-weight:700; letter-spacing:2pt;
+                        font-family:Helvetica,Arial,sans-serif; line-height:1.2;">
+              ELITEZ ASIA'S<br/>ANALYTICS</div>
+            <div style="color:rgba(255,255,255,0.6); font-size:7.5pt; font-weight:400;
+                        letter-spacing:2pt; text-transform:uppercase; margin-top:4pt;">
+              Powered by CB Research Framework</div>
           </td>
+          <td style="width:1%;"></td>
         </tr></table>
+        <!-- Equity Research Report — bottom right -->
+        <div style="text-align:right; margin-top:14pt;">
+          <span style="color:rgba(255,255,255,0.7); font-size:9pt; font-weight:600; letter-spacing:2pt;
+                       text-transform:uppercase;">Equity Research Report</span>
+          <br/>
+          <span style="color:rgba(255,255,255,0.45); font-size:7.5pt;
+                       letter-spacing:1pt;">CB CF &middot; FS &middot; OM</span>
+        </div>
       </div>
 
-      <!-- Spacer (reduced from 60pt to 40pt) -->
-      <div style="height:40pt;"></div>
+      <!-- Spacer -->
+      <div style="height:30pt;"></div>
 
       <!-- Ticker (reduced from 42pt to 36pt) -->
       <div style="text-align:left;">
@@ -1239,7 +1259,7 @@ def _build_disclaimers(ticker: str, today_str: str) -> str:
         <table width="100%"><tr>
           <td style="vertical-align:top;">
             <div>
-              <img src="data:image/svg+xml;base64,{_LOGO_B64_SMALL}" height="20" style="vertical-align:middle;" />
+              <img src="data:image/svg+xml;base64,{_LOGO_B64_SM}" height="20" style="vertical-align:middle;" />
               <span style="font-size:9pt; font-weight:700; color:{MAROON}; margin-left:8pt;
                            vertical-align:middle;">ELITEZ ASIA'S ANALYTICS</span>
             </div>
