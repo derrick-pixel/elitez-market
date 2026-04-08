@@ -1629,6 +1629,9 @@ def page_cb_analysis():
         st.divider()
         st.markdown("### Download Report")
         try:
+            from datetime import datetime
+            _now = datetime.now()
+            _timestamp = _now.strftime("%Y-%m-%d_%H%M")
             pdf_bytes = generate_pdf(
                 ticker=ticker,
                 info=info,
@@ -1643,7 +1646,7 @@ def page_cb_analysis():
             st.download_button(
                 "Download PDF Report",
                 data=pdf_bytes,
-                file_name=f"{ticker}_CB_Analysis.pdf",
+                file_name=f"ElitezAsia_{ticker}_{_timestamp}.pdf",
                 mime="application/pdf",
             )
         except Exception as e:
