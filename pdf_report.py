@@ -930,25 +930,25 @@ def _build_cf_fs_content(ticker: str, info: dict, booth: dict, fs: dict, thesis:
         <div style="font-size:8pt; color:#475569; margin-top:4pt; line-height:1.4;">{desc_short}</div>
       </div>
 
-      <!-- Section bars side by side -->
-      <table width="100%"><tr>
-        <td width="50%" valign="top" style="padding-right:6pt;">
-          {_section_bar("CB Corporate Finance")}
-        </td>
-        <td width="50%" valign="top" style="padding-left:6pt;">
-          {_section_bar("CB Financial Strategy")}
-        </td>
-      </tr></table>
-
-      <!-- Card content side by side -->
-      <table width="100%"><tr>
-        <td width="50%" valign="top" style="padding-right:6pt;">
-          {cf_cards}
-        </td>
-        <td width="50%" valign="top" style="padding-left:6pt;">
-          {fs_cards}
-        </td>
-      </tr></table>
+      <!-- CF|FS: bars + cards in single table for perfect alignment -->
+      <table width="100%" style="border-collapse:collapse;">
+        <tr>
+          <td width="50%" valign="top" style="padding:0 6pt 0 0;">
+            {_section_bar("CB Corporate Finance")}
+          </td>
+          <td width="50%" valign="top" style="padding:0 0 0 6pt;">
+            {_section_bar("CB Financial Strategy")}
+          </td>
+        </tr>
+        <tr>
+          <td width="50%" valign="top" style="padding:0 6pt 0 0;">
+            {cf_cards}
+          </td>
+          <td width="50%" valign="top" style="padding:0 0 0 6pt;">
+            {fs_cards}
+          </td>
+        </tr>
+      </table>
 
       <!-- CF+FS Thesis narrative - full width -->
       {_narrative_card("CF + FS Investment Thesis &middot; Powered by Elitez-CB Analysis", thesis)}
@@ -1057,7 +1057,7 @@ def _build_om_content(ticker: str, om: dict, om_narrative: str) -> str:
         ]) + sig, "S7/S8: Bullwhip effect amplifies demand signal variance up the supply chain. Ratio > 1 indicates amplification.")
 
     return f"""
-    <div>
+    <div style="page-break-before:always;">
       {_page_header(ticker)}
       {_section_bar("CB Operations Management")}
       <table width="100%"><tr>
@@ -1176,7 +1176,7 @@ def _build_cs_content(ticker: str, cs: dict, cs_narrative: str) -> str:
             "Session 2: Market positioning analysis based on Porter's generic strategies and competitive dynamics.")
 
     return f"""
-    <div>
+    <div style="page-break-before:always;">
       {_page_header(ticker)}
       {_section_bar("CB Competitive Strategy")}
       <table width="100%"><tr>
