@@ -1544,18 +1544,45 @@ def page_cb_analysis():
         _section_bar("EXECUTIVE SUMMARY")
         _render_executive_summary(booth, fs)
 
+        # ====== AI NARRATIVES — cached in session_state per ticker ======
+        # Only generate if ticker changed or not yet generated
+        _narrative_key = f"narratives_{ticker}"
+        if _narrative_key not in st.session_state:
+            with st.spinner(f"Generating AI analysis for {ticker}... (one-time per ticker)"):
+                _thesis = _get_ai_narrative(
+                    "You are an equity research analyst trained at Chicago Booth. "
+                    "Write a concise investment thesis (3-4 paragraphs) covering valuation, "
+                    "financial health, capital structure, and risk factors. Use bullet points for key metrics.",
+                    {"corporate_finance": booth, "financial_strategy": fs},
+                )
+                _om_narr = _get_ai_narrative(
+                    "You are an operations management consultant trained at Chicago Booth. "
+                    "Analyze the supply chain efficiency, operational throughput, process quality, "
+                    "and demand variability. Provide actionable insights in 2-3 paragraphs.",
+                    om,
+                )
+                _cs_narr = _get_ai_narrative(
+                    "You are a competitive strategy analyst trained at Chicago Booth. "
+                    "Assess the company's competitive moat, disruption risk, and market position. "
+                    "Reference Porter's Five Forces and Henderson & Clark where relevant. 2-3 paragraphs.",
+                    cs,
+                )
+                st.session_state[_narrative_key] = {
+                    "thesis": _thesis,
+                    "om_narrative": _om_narr,
+                    "cs_narrative": _cs_narr,
+                }
+
+        _narratives = st.session_state[_narrative_key]
+        thesis = _narratives["thesis"]
+        om_narrative = _narratives["om_narrative"]
+        cs_narrative = _narratives["cs_narrative"]
+
         # ====== INVESTMENT THESIS AI ======
         st.markdown(
-            '<div class="ai-header">INVESTMENT THESIS \u00b7 AI ANALYSIS \u00b7 POWERED BY ELITEZ-CB ANALYSIS</div>',
+            '<div class="ai-header">INVESTMENT THESIS \u00b7 POWERED BY ELITEZ-CB ANALYSIS</div>',
             unsafe_allow_html=True,
         )
-        with st.spinner("Generating investment thesis..."):
-            thesis = _get_ai_narrative(
-                "You are an equity research analyst trained at Chicago Booth. "
-                "Write a concise investment thesis (3-4 paragraphs) covering valuation, "
-                "financial health, capital structure, and risk factors. Use bullet points for key metrics.",
-                {"corporate_finance": booth, "financial_strategy": fs},
-            )
         if thesis:
             st.markdown(f'<div class="ai-body">{_md(thesis)}</div>', unsafe_allow_html=True)
 
@@ -1572,7 +1599,7 @@ def page_cb_analysis():
 
         # ====== CF+FS THESIS AI (full-width) ======
         _ai_block(
-            "CF + FS THESIS \u00b7 AI ANALYSIS \u00b7 POWERED BY ELITEZ-CB ANALYSIS",
+            "CF + FS THESIS \u00b7 POWERED BY ELITEZ-CB ANALYSIS",
             _md(thesis) if thesis else "<em>No thesis generated.</em>",
         )
 
@@ -1581,16 +1608,9 @@ def page_cb_analysis():
 
         # OM Narrative AI
         st.markdown(
-            '<div class="ai-header">OPERATIONS MANAGEMENT \u00b7 AI NARRATIVE \u00b7 POWERED BY ELITEZ-CB ANALYSIS</div>',
+            '<div class="ai-header">OPERATIONS MANAGEMENT \u00b7 POWERED BY ELITEZ-CB ANALYSIS</div>',
             unsafe_allow_html=True,
         )
-        with st.spinner("Generating operations narrative..."):
-            om_narrative = _get_ai_narrative(
-                "You are an operations management consultant trained at Chicago Booth. "
-                "Analyze the supply chain efficiency, operational throughput, process quality, "
-                "and demand variability. Provide actionable insights in 2-3 paragraphs.",
-                om,
-            )
         if om_narrative:
             st.markdown(f'<div class="ai-body">{_md(om_narrative)}</div>', unsafe_allow_html=True)
 
@@ -1599,16 +1619,9 @@ def page_cb_analysis():
 
         # CS Narrative AI
         st.markdown(
-            '<div class="ai-header">COMPETITIVE STRATEGY \u00b7 AI NARRATIVE \u00b7 POWERED BY ELITEZ-CB ANALYSIS</div>',
+            '<div class="ai-header">COMPETITIVE STRATEGY \u00b7 POWERED BY ELITEZ-CB ANALYSIS</div>',
             unsafe_allow_html=True,
         )
-        with st.spinner("Generating strategy narrative..."):
-            cs_narrative = _get_ai_narrative(
-                "You are a competitive strategy analyst trained at Chicago Booth. "
-                "Assess the company's competitive moat, disruption risk, and market position. "
-                "Reference Porter's Five Forces and Henderson & Clark where relevant. 2-3 paragraphs.",
-                cs,
-            )
         if cs_narrative:
             st.markdown(f'<div class="ai-body">{_md(cs_narrative)}</div>', unsafe_allow_html=True)
 
