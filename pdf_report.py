@@ -236,7 +236,7 @@ def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None, fs
 
     # Stats row: 8 stats in one row
     stats_html = f"""
-    <table style="width:100%; border-collapse:collapse; margin:20pt 0;">
+    <table style="width:100%; border-collapse:collapse; margin:10pt 0;">
       <tr>
         <td style="width:12.5%; padding:8pt 4pt; text-align:center; border:1px solid {BORDER_COLOR};">
           <div style="font-size:7pt; color:{GREY}; text-transform:uppercase; letter-spacing:0.5pt;">PRICE</div>
@@ -306,7 +306,7 @@ def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None, fs
     po_sub = f"Net: {po_net}" if po_net else ""
 
     exec_summary_html = f"""
-    <div style="margin:10pt 0 6pt 0;">
+    <div style="margin:6pt 0 4pt 0;">
       <div style="text-transform:uppercase; letter-spacing:1.5pt; font-size:8pt;
                    color:{MAROON}; font-weight:700; margin-bottom:4pt;">Executive Summary</div>
       <table style="width:100%; border-collapse:separate; border-spacing:4pt;">
@@ -338,7 +338,7 @@ def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None, fs
         _rating_verdict = "NOT RATED"
 
     rating_html = (
-        f'<div style="margin:10pt 0; text-align:left;">'
+        f'<div style="margin:4pt 0; text-align:left;">'
         f'<span style="font-size:8pt; color:{GREY}; text-transform:uppercase; letter-spacing:1pt;">CB Framework Rating</span>'
         f'<div style="font-size:14pt; font-weight:700; color:{MAROON}; margin-top:2pt; letter-spacing:1pt;">'
         f'{_rating_verdict}</div>'
@@ -346,17 +346,17 @@ def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None, fs
         f'</div>'
     )
 
-    # Truncate description
-    desc_text = description[:500] + "..." if len(description) > 500 else description
+    # Truncate description (keep short to prevent page 1 overflow)
+    desc_text = description[:350] + "..." if len(description) > 350 else description
 
     # Pill tags for sector/industry
     pill_style = (f"display:inline-block; background:#f1f5f9; color:#475569; "
                   f"border-radius:12px; padding:3pt 10pt; font-size:8.5pt; margin:2pt 4pt;")
 
     return f"""
-    <div style="page-break-after:always;">
+    <div style="page-break-after:always; page-break-inside:avoid;">
       <!-- Header band — tall maroon, bleeds full-width -->
-      <div style="background:{MAROON}; padding:36pt 28pt 28pt 28pt;
+      <div style="background:{MAROON}; padding:28pt 24pt 20pt 24pt;
                    margin:0 -1.5cm 0 -1.5cm;">
         <!-- Logo + Company Name -->
         <table width="100%"><tr>
@@ -384,12 +384,12 @@ def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None, fs
       </div>
 
       <!-- Spacer -->
-      <div style="height:30pt;"></div>
+      <div style="height:16pt;"></div>
 
-      <!-- Ticker (reduced from 42pt to 36pt) -->
+      <!-- Ticker -->
       <div style="text-align:left;">
-        <div style="font-size:36pt; font-weight:700; color:{DARK_TEXT}; letter-spacing:3pt;">{ticker}</div>
-        <div style="font-size:14pt; color:#475569; margin-top:4pt;">{name}</div>
+        <div style="font-size:32pt; font-weight:700; color:{DARK_TEXT}; letter-spacing:3pt;">{ticker}</div>
+        <div style="font-size:12pt; color:#475569; margin-top:2pt;">{name}</div>
         <div style="margin-top:8pt;">
           <span style="{pill_style}">{sector}</span>
           <span style="{pill_style}">{industry}</span>
@@ -406,13 +406,13 @@ def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None, fs
       {rating_html}
 
       <!-- Description -->
-      <div style="border-left:3pt solid {BORDER_COLOR}; padding:10pt 14pt; margin:10pt 20pt;
-                   font-size:9pt; color:#475569; line-height:1.6; background:#fafafa;">
+      <div style="border-left:3pt solid {BORDER_COLOR}; padding:6pt 12pt; margin:6pt 0;
+                   font-size:8pt; color:#475569; line-height:1.5; background:#fafafa;">
         {desc_text}
       </div>
 
       <!-- Footer -->
-      <div style="margin-top:20pt; border-top:1px solid {BORDER_COLOR}; padding-top:10pt;">
+      <div style="margin-top:10pt; border-top:1px solid {BORDER_COLOR}; padding-top:6pt;">
         <table width="100%"><tr>
           <td style="font-size:8pt; color:{GREY}; vertical-align:top;">
             <div>Report Date: {today_str}</div>
@@ -1075,9 +1075,12 @@ def _build_om_content(ticker: str, om: dict, om_narrative: str) -> str:
         ]) + sig, "S7/S8: Bullwhip effect amplifies demand signal variance up the supply chain. Ratio > 1 indicates amplification.")
 
     return f"""
-    <div style="page-break-before:always;">
-      {_page_header(ticker)}
-      {_section_bar("CB Operations Management")}
+    <div>
+      <!-- OM header group — avoid orphan (header alone at bottom of page) -->
+      <div style="page-break-inside:avoid;">
+        {_page_header(ticker)}
+        {_section_bar("CB Operations Management")}
+      </div>
       <table width="100%"><tr>
         <td width="50%" valign="top" style="padding-right:6pt;">
           {sc_content}
@@ -1194,9 +1197,12 @@ def _build_cs_content(ticker: str, cs: dict, cs_narrative: str) -> str:
             "Session 2: Market positioning analysis based on Porter's generic strategies and competitive dynamics.")
 
     return f"""
-    <div style="page-break-before:always;">
-      {_page_header(ticker)}
-      {_section_bar("CB Competitive Strategy")}
+    <div>
+      <!-- CS header group — avoid orphan -->
+      <div style="page-break-inside:avoid;">
+        {_page_header(ticker)}
+        {_section_bar("CB Competitive Strategy")}
+      </div>
       <table width="100%"><tr>
         <td width="33%" valign="top" style="padding-right:4pt;">
           {moat_content}
