@@ -219,7 +219,7 @@ def _page_header(ticker: str) -> str:
 # PAGE 1: Cover (now includes compact executive summary)
 # ---------------------------------------------------------------------------
 
-def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None, fs: dict = None) -> str:
+def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None, fs: dict = None, timestamp_str: str = "") -> str:
     name = info.get("longName") or info.get("shortName") or ticker
     sector = info.get("sector", "N/A")
     industry = info.get("industry", "N/A")
@@ -415,7 +415,7 @@ def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None, fs
       <div style="margin-top:10pt; border-top:1px solid {BORDER_COLOR}; padding-top:6pt;">
         <table width="100%"><tr>
           <td style="font-size:8pt; color:{GREY}; vertical-align:top;">
-            <div>Report Date: {today_str}</div>
+            <div>Report Date: {timestamp_str if timestamp_str else today_str}</div>
             <div style="margin-top:2pt;">Analysis powered by CB frameworks (CF &middot; FS &middot; OM)</div>
             <div style="margin-top:4pt; display:inline-block; border:1px solid #53565A; color:#53565A;
                         background:none; padding:2pt 10pt; border-radius:3px; font-size:7pt; font-weight:600;
@@ -1300,7 +1300,9 @@ def _build_html(
     om_narrative: str,
     cs_narrative: str,
 ) -> str:
-    today_str = datetime.now().strftime("%d %b %Y")
+    _now = datetime.now()
+    today_str = _now.strftime("%d %b %Y")
+    timestamp_str = _now.strftime("%d %b %Y, %H:%M")
 
     css = f"""
     @page {{
@@ -1356,7 +1358,7 @@ def _build_html(
     }}
     """
 
-    page1 = _build_cover(ticker, info, today_str, booth, fs)
+    page1 = _build_cover(ticker, info, today_str, booth, fs, timestamp_str)
     cf_fs = _build_cf_fs_content(ticker, info, booth, fs, thesis)
     om_content = _build_om_content(ticker, om, om_narrative)
     cs_content = _build_cs_content(ticker, cs, cs_narrative)
