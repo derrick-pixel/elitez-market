@@ -1,0 +1,5 @@
+period,avg,low,high,numberOfAnalysts,yearAgoEps,growth
+0q,0.495,0.49,0.5,2,,
++1q,0.625,0.6,0.65,2,,
+0y,2.47,2.33,2.59,3,,
++1y,3.29,2.99,3.63,3,2.47,0.33200002

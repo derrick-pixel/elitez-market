@@ -1,20 +1,25 @@
 """
 Data fetcher with fallback chain:
+  0. Pre-scraped CSV (S&P 500 tickers — instant, no API calls) + live price
   1. yfinance (library)
   2. Yahoo Finance direct JSON (bypasses yfinance library issues)
   3. Finnhub+Stooq (if FINNHUB_KEY set)
   4. Empty StockData
 
-On Streamlit Cloud, yfinance often fails due to shared IP rate-limiting.
-The Yahoo JSON fallback uses a different endpoint that is more reliable.
+For S&P 500 tickers, fundamentals are loaded from pre-scraped CSVs in the
+2026-04/ directory. Only the live stock price requires a network call — a
+single lightweight request via Yahoo v8 chart endpoint.
 """
 
+import csv
 import io
 import os
 import time
 import logging
+from pathlib import Path
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 import requests
 import yfinance as yf
@@ -23,6 +28,160 @@ from models.stock import StockData
 from config import DEFAULT_PERIOD, DEFAULT_INTERVAL
 
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Source 0: Pre-scraped CSV + live price (S&P 500 only)
+# ---------------------------------------------------------------------------
+
+_CSV_DIR = Path(__file__).resolve().parent.parent / "2026-04"
+
+
+def _csv_available(ticker: str) -> bool:
+    """Check if pre-scraped CSV data exists for this ticker."""
+    return (_CSV_DIR / ticker / "info.csv").is_file()
+
+
+def _get_live_price(ticker: str) -> Optional[float]:
+    """Fetch just the current price — single lightweight call."""
+    # Try Yahoo v8 chart (works without auth, very fast)
+    try:
+        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
+        r = requests.get(
+            url,
+            params={"range": "1d", "interval": "1d"},
+            headers={"User-Agent": "Mozilla/5.0"},
+            timeout=8,
+        )
+        if r.status_code == 200:
+            data = r.json()
+            result = data.get("chart", {}).get("result", [])
+            if result:
+                meta = result[0].get("meta", {})
+                price = meta.get("regularMarketPrice")
+                if price:
+                    return float(price)
+    except Exception as e:
+        logger.debug("Live price (Yahoo chart) failed for %s: %s", ticker, e)
+
+    # Fallback: Stooq last close
+    try:
+        url = f"https://stooq.com/q/l/?s={ticker.lower()}.us&e=csv"
+        r = requests.get(url, timeout=8)
+        if r.status_code == 200 and "Close" in r.text:
+            lines = r.text.strip().split("\n")
+            if len(lines) >= 2:
+                headers = lines[0].split(",")
+                values = lines[1].split(",")
+                if "Close" in headers:
+                    idx = headers.index("Close")
+                    val = float(values[idx])
+                    if val > 0:
+                        return val
+    except Exception as e:
+        logger.debug("Live price (Stooq) failed for %s: %s", ticker, e)
+
+    return None
+
+
+def _parse_csv_value(val: str):
+    """Parse a CSV string value into appropriate Python type."""
+    if not val or val in ("", "None", "nan", "NaN"):
+        return None
+    # Try numeric
+    try:
+        if "." in val:
+            return float(val)
+        return int(val)
+    except ValueError:
+        pass
+    return val
+
+
+def _fetch_from_csv(ticker: str) -> Optional[StockData]:
+    """Load pre-scraped data from CSV files. Only fetches live price from network."""
+    ticker_dir = _CSV_DIR / ticker
+    if not (ticker_dir / "info.csv").is_file():
+        return None
+
+    try:
+        # Load info.csv (single row, many columns)
+        with open(ticker_dir / "info.csv", "r") as f:
+            reader = csv.reader(f)
+            headers = next(reader)
+            values = next(reader, [])
+        if not values:
+            return None
+
+        info = {}
+        for h, v in zip(headers, values):
+            info[h] = _parse_csv_value(v)
+
+        # Update with live price
+        live_price = _get_live_price(ticker)
+        if live_price:
+            info["currentPrice"] = live_price
+            info["regularMarketPrice"] = live_price
+            logger.info("Live price for %s: $%.2f", ticker, live_price)
+
+        # Load price history
+        history = None
+        hist_path = ticker_dir / "price_history.csv"
+        if hist_path.is_file():
+            try:
+                df = pd.read_csv(hist_path)
+                if "Date" in df.columns and "Close" in df.columns:
+                    df["Date"] = pd.to_datetime(df["Date"], utc=True)
+                    df = df.set_index("Date").sort_index()
+                    # Keep OHLCV columns
+                    cols = [c for c in ["Open", "High", "Low", "Close", "Volume"] if c in df.columns]
+                    history = df[cols].dropna(subset=["Close"])
+                    if history.empty:
+                        history = None
+            except Exception as e:
+                logger.debug("price_history.csv parse failed for %s: %s", ticker, e)
+
+        # Load financial statements
+        balance_sheet = _load_financial_csv(ticker_dir / "balance_sheet.csv")
+        financials = _load_financial_csv(ticker_dir / "income_statement.csv")
+        cash_flow = _load_financial_csv(ticker_dir / "cashflow.csv")
+        quarterly_bs = _load_financial_csv(ticker_dir / "balance_sheet_quarterly.csv")
+
+        return StockData(
+            ticker=ticker,
+            info=info,
+            history=history,
+            balance_sheet=balance_sheet,
+            financials=financials,
+            quarterly_balance_sheet=quarterly_bs,
+            cash_flow=cash_flow,
+        )
+    except Exception as e:
+        logger.warning("CSV load failed for %s: %s", ticker, e)
+        return None
+
+
+def _load_financial_csv(path: Path) -> Optional[pd.DataFrame]:
+    """Load a financial statement CSV (rows=items, cols=dates)."""
+    if not path.is_file():
+        return None
+    try:
+        df = pd.read_csv(path, index_col=0)
+        if df.empty:
+            return None
+        # Convert column names to datetime if they look like dates
+        new_cols = []
+        for c in df.columns:
+            try:
+                new_cols.append(pd.to_datetime(c))
+            except Exception:
+                new_cols.append(c)
+        df.columns = new_cols
+        # Convert values to numeric
+        df = df.apply(pd.to_numeric, errors="coerce")
+        return df if not df.empty else None
+    except Exception as e:
+        logger.debug("Financial CSV parse failed for %s: %s", path, e)
+        return None
 
 # ---------------------------------------------------------------------------
 # Source 1: yfinance library (with retry)
@@ -389,9 +548,16 @@ def _fetch_finnhub_stooq(ticker: str) -> Optional[StockData]:
 def fetch_stock_data(ticker: str) -> StockData:
     """
     Fetch stock data with fallback chain:
-    yfinance → Yahoo direct JSON → Finnhub+Stooq → empty StockData.
+    CSV+live price → yfinance → Yahoo direct JSON → Finnhub+Stooq → empty.
     """
     ticker = ticker.strip().upper()
+
+    # 0. Try pre-scraped CSV + live price (S&P 500 — instant, 1 API call)
+    if _csv_available(ticker):
+        data = _fetch_from_csv(ticker)
+        if data is not None:
+            logger.info("Fetched %s from CSV + live price", ticker)
+            return data
 
     # 1. Try yfinance library
     data = _fetch_yfinance(ticker)
