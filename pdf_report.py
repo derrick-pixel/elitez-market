@@ -8,8 +8,8 @@ Restructured layout:
   CS content (cards + narrative together, no forced break)
   Disclaimers
 
-Color theme: ChicagoBooth Maroon (#9B1B30) and Grey (#53565A, Pantone Cool Gray 11C).
-Branding: Elitez Asia's Analytics, Powered by CB Research Framework.
+Color theme: Dark Brown (#4A2811), Gold (#D4A017), and Grey (#53565A, Pantone Cool Gray 11C).
+Branding: Adept Academy, Powered by CB Research Framework.
 
 WeasyPrint constraints: NO flexbox flex:1/flex:2 — use <table> with percentage
 widths for multi-column layouts.
@@ -23,8 +23,9 @@ from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
-MAROON = "#9B1B30"
-MAROON_LIGHT = "#fdf2f4"
+MAROON = "#4A2811"        # Dark Brown (was "#9B1B30" maroon)
+MAROON_LIGHT = "#fdf8f0"  # Warm cream (was "#fdf2f4" maroon-tinted)
+GOLD = "#D4A017"          # Accent color
 GREY = "#53565A"
 DARK_TEXT = "#1e293b"
 BORDER_COLOR = "#e2e8f0"
@@ -36,19 +37,9 @@ RED_BG = "#fef2f2"
 AMBER_BG = "#fffbeb"
 
 # ---------------------------------------------------------------------------
-# Logo SVG
+# Logo PNG (base64-encoded)
 # ---------------------------------------------------------------------------
-_LOGO_SVG_SMALL = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 28">
-  <rect width="100" height="28" rx="4" fill="#9B1B30"/>
-  <text x="8" y="21" font-family="Helvetica,Arial,sans-serif" font-size="18" font-weight="700" fill="white">ELITEZ</text>
-</svg>"""
-_LOGO_B64_SMALL = base64.b64encode(_LOGO_SVG_SMALL.encode()).decode()
-
-_LOGO_SVG_LARGE = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 44">
-  <rect width="160" height="44" rx="6" fill="#9B1B30"/>
-  <text x="12" y="32" font-family="Helvetica,Arial,sans-serif" font-size="28" font-weight="700" fill="white">ELITEZ</text>
-</svg>"""
-_LOGO_B64_LARGE = base64.b64encode(_LOGO_SVG_LARGE.encode()).decode()
+_LOGO_B64 = "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"
 
 
 # ---------------------------------------------------------------------------
@@ -200,7 +191,7 @@ def _page_header(ticker: str) -> str:
     return (f'<div style="border-bottom:1px solid {BORDER_COLOR}; padding-bottom:6pt; '
             f'margin-bottom:12pt;">'
             f'<table width="100%"><tr>'
-            f'<td style="font-size:8pt; color:{GREY};">Elitez Asia\'s Analytics</td>'
+            f'<td style="font-size:8pt; color:{GREY};">Adept Academy</td>'
             f'<td style="font-size:8pt; color:{GREY}; text-align:right;">'
             f'{ticker} &middot; CB Analysis</td>'
             f'</tr></table></div>')
@@ -351,8 +342,7 @@ def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None, fs
                    margin:0 -1.5cm 0 -1.5cm;">
         <table width="100%"><tr>
           <td style="vertical-align:top;">
-            <div style="color:white; font-size:28pt; font-weight:700; letter-spacing:3pt;
-                        font-family:Helvetica,Arial,sans-serif;">ELITEZ</div>
+            <img src="data:image/png;base64,{_LOGO_B64}" height="35" style="display:block;" />
             <div style="color:rgba(255,255,255,0.85); font-size:8pt; font-weight:600;
                         letter-spacing:2pt; text-transform:uppercase; margin-top:6pt;">CB Research Framework</div>
           </td>
@@ -404,9 +394,9 @@ def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None, fs
                         letter-spacing:1pt; text-transform:uppercase;">CONFIDENTIAL</div>
           </td>
           <td style="text-align:right; font-size:8pt; color:{GREY}; vertical-align:top;">
-            <div style="font-weight:600;">Elitez Asia's Analytics</div>
-            <div>elitez-market.streamlit.app</div>
-            <div>Powered by Elitez-CB Analysis</div>
+            <div style="font-weight:600;">Adept Academy</div>
+            <div>adeptacademy.streamlit.app</div>
+            <div>Powered by Adept-CB Analysis</div>
           </td>
         </tr></table>
       </div>
@@ -914,7 +904,7 @@ def _build_cf_fs_content(ticker: str, info: dict, booth: dict, fs: dict, thesis:
       {_page_header(ticker)}
 
       <!-- Investment Thesis -->
-      {_narrative_card("Investment Thesis &middot; Powered by Elitez-CB Analysis", thesis)}
+      {_narrative_card("Investment Thesis &middot; Powered by Adept-CB Analysis", thesis)}
 
       <!-- Company Info -->
       <div style="border:1px solid {BORDER_COLOR}; border-radius:3px; padding:10pt 14pt; margin:10pt 0; page-break-inside:avoid;">
@@ -951,7 +941,7 @@ def _build_cf_fs_content(ticker: str, info: dict, booth: dict, fs: dict, thesis:
       </table>
 
       <!-- CF+FS Thesis narrative - full width -->
-      {_narrative_card("CF + FS Investment Thesis &middot; Powered by Elitez-CB Analysis", thesis)}
+      {_narrative_card("CF + FS Investment Thesis &middot; Powered by Adept-CB Analysis", thesis)}
     </div>
     """
 
@@ -1072,7 +1062,7 @@ def _build_om_content(ticker: str, om: dict, om_narrative: str) -> str:
       </tr></table>
 
       <!-- OM Narrative flows right after cards -->
-      {_narrative_card("OM Narrative &middot; Powered by Elitez-CB Analysis", om_narrative)}
+      {_narrative_card("OM Narrative &middot; Powered by Adept-CB Analysis", om_narrative)}
     </div>
     """
 
@@ -1192,7 +1182,7 @@ def _build_cs_content(ticker: str, cs: dict, cs_narrative: str) -> str:
       </tr></table>
 
       <!-- CS Narrative flows right after cards -->
-      {_narrative_card("Competitive Strategy Narrative &middot; Powered by Elitez-CB Analysis", cs_narrative)}
+      {_narrative_card("Competitive Strategy Narrative &middot; Powered by Adept-CB Analysis", cs_narrative)}
     </div>
     """
 
@@ -1210,12 +1200,12 @@ def _build_disclaimers(ticker: str, today_str: str) -> str:
       <div style="font-size:9pt; color:{GREY}; line-height:1.7;">
         <div style="margin-bottom:12pt;">
           <div style="font-weight:700; color:{DARK_TEXT}; margin-bottom:4pt;">Not Investment Advice</div>
-          <div>This report has been prepared by Elitez Asia's Analytics solely for informational and educational purposes. Nothing contained in this report constitutes investment advice, a solicitation, an offer to buy or sell any security, or a recommendation of any investment strategy. The analysis and opinions expressed herein are based on publicly available financial data and do not represent the views of any regulated financial institution or licensed investment adviser.</div>
+          <div>This report has been prepared by Adept Academy solely for informational and educational purposes. Nothing contained in this report constitutes investment advice, a solicitation, an offer to buy or sell any security, or a recommendation of any investment strategy. The analysis and opinions expressed herein are based on publicly available financial data and do not represent the views of any regulated financial institution or licensed investment adviser.</div>
         </div>
 
         <div style="margin-bottom:12pt;">
           <div style="font-weight:700; color:{DARK_TEXT}; margin-bottom:4pt;">Data Sources &amp; Limitations</div>
-          <div>Financial data is sourced from public filings (SEC/EDGAR), market data providers, and news sources via automated data feeds. While reasonable care has been taken to ensure accuracy, Elitez Asia's Analytics makes no warranty, express or implied, as to the completeness, timeliness, or accuracy of any data. Market data reflects conditions as at the report date ({today_str}) and may have changed materially since publication. Operations Management metrics (e.g. OEE, Cpk, actual queue lengths) are estimated from public financial statements and are not directly observed internal metrics.</div>
+          <div>Financial data is sourced from public filings (SEC/EDGAR), market data providers, and news sources via automated data feeds. While reasonable care has been taken to ensure accuracy, Adept Academy makes no warranty, express or implied, as to the completeness, timeliness, or accuracy of any data. Market data reflects conditions as at the report date ({today_str}) and may have changed materially since publication. Operations Management metrics (e.g. OEE, Cpk, actual queue lengths) are estimated from public financial statements and are not directly observed internal metrics.</div>
         </div>
 
         <div style="margin-bottom:12pt;">
@@ -1230,7 +1220,7 @@ def _build_disclaimers(ticker: str, today_str: str) -> str:
 
         <div style="margin-bottom:12pt;">
           <div style="font-weight:700; color:{DARK_TEXT}; margin-bottom:4pt;">No Liability</div>
-          <div>Elitez Asia's Analytics, its affiliates, and contributors accept no liability for any loss or damage arising from the use of, or reliance on, information in this report. Past performance of any security referenced herein is not a reliable indicator of future results. All investments carry risk, including the possible loss of principal.</div>
+          <div>Adept Academy, its affiliates, and contributors accept no liability for any loss or damage arising from the use of, or reliance on, information in this report. Past performance of any security referenced herein is not a reliable indicator of future results. All investments carry risk, including the possible loss of principal.</div>
         </div>
       </div>
 
@@ -1239,18 +1229,18 @@ def _build_disclaimers(ticker: str, today_str: str) -> str:
         <table width="100%"><tr>
           <td style="vertical-align:top;">
             <div>
-              <img src="data:image/svg+xml;base64,{_LOGO_B64_SMALL}" height="20" style="vertical-align:middle;" />
+              <img src="data:image/png;base64,{_LOGO_B64}" height="20" style="vertical-align:middle;" />
               <span style="font-size:9pt; font-weight:700; color:{MAROON}; margin-left:8pt;
-                           vertical-align:middle;">ELITEZ ASIA'S ANALYTICS</span>
+                           vertical-align:middle;">ADEPT ACADEMY</span>
             </div>
             <div style="font-size:8pt; color:{GREY}; margin-top:4pt;">
-              elitez-market.streamlit.app &middot; Powered by Elitez-CB Analysis
+              adeptacademy.streamlit.app &middot; Powered by Adept-CB Analysis
             </div>
           </td>
           <td style="text-align:right; vertical-align:top;">
             <div style="font-size:8pt; color:{GREY};">Report generated: {today_str}</div>
             <div style="font-size:8pt; color:{GREY};">Ticker: {ticker}</div>
-            <div style="font-size:8pt; color:{GREY};">&copy; 2026 Elitez Asia's Analytics. All rights reserved.</div>
+            <div style="font-size:8pt; color:{GREY};">&copy; 2026 Adept Academy. All rights reserved.</div>
           </td>
         </tr></table>
       </div>
@@ -1283,7 +1273,7 @@ def _build_html(
         size: A4;
         margin: 1.5cm 1.5cm 2cm 1.5cm;
         @bottom-left {{
-            content: "Elitez Asia's Analytics | {today_str}";
+            content: "Adept Academy | {today_str}";
             font-size: 7.5pt;
             color: {GREY};
             font-family: Helvetica, Arial, sans-serif;
