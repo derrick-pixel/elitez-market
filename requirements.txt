@@ -7,4 +7,3 @@ streamlit>=1.37.0
 plotly>=5.20.0
 anthropic>=0.25.0
 weasyprint>=60.0
-# Redeployed Thu  9 Apr 2026 08:15:21 +08
