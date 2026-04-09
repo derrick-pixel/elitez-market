@@ -355,32 +355,28 @@ def _build_cover(ticker: str, info: dict, today_str: str, booth: dict = None, fs
 
     return f"""
     <div style="page-break-after:always; page-break-inside:avoid;">
-      <!-- Header band — tall maroon, bleeds full-width -->
-      <div style="background:{MAROON}; padding:28pt 24pt 20pt 24pt;
+      <!-- Header band — maroon, bleeds full-width -->
+      <div style="background:{MAROON}; padding:20pt 24pt 16pt 24pt;
                    margin:0 -1.5cm 0 -1.5cm;">
-        <!-- Logo + Company Name -->
         <table width="100%"><tr>
-          <td style="vertical-align:middle;">
-            <img src="data:image/png;base64,{_LOGO_B64}" height="50" />
+          <td style="vertical-align:middle; width:55pt;">
+            <img src="data:image/png;base64,{_LOGO_B64}" style="width:50pt; height:50pt;" />
           </td>
-          <td style="vertical-align:middle; padding-left:16pt;">
-            <div style="color:white; font-size:22pt; font-weight:700; letter-spacing:2pt;
+          <td style="vertical-align:middle; padding-left:10pt;">
+            <div style="color:white; font-size:18pt; font-weight:700; letter-spacing:2pt;
                         font-family:Helvetica,Arial,sans-serif; line-height:1.2;">
-              ELITEZ ASIA'S<br/>ANALYTICS</div>
-            <div style="color:rgba(255,255,255,0.6); font-size:7.5pt; font-weight:400;
-                        letter-spacing:2pt; text-transform:uppercase; margin-top:4pt;">
+              ELITEZ ASIA'S ANALYTICS</div>
+            <div style="color:rgba(255,255,255,0.55); font-size:7pt; font-weight:400;
+                        letter-spacing:2pt; text-transform:uppercase; margin-top:3pt;">
               Powered by CB Research Framework</div>
           </td>
-          <td style="width:1%;"></td>
+          <td style="text-align:right; vertical-align:bottom; width:35%;">
+            <div style="color:rgba(255,255,255,0.7); font-size:8pt; font-weight:600; letter-spacing:2pt;
+                        text-transform:uppercase;">Equity Research Report</div>
+            <div style="color:rgba(255,255,255,0.4); font-size:7pt; margin-top:2pt;
+                        letter-spacing:1pt;">CB CF &middot; FS &middot; OM</div>
+          </td>
         </tr></table>
-        <!-- Equity Research Report — bottom right -->
-        <div style="text-align:right; margin-top:14pt;">
-          <span style="color:rgba(255,255,255,0.7); font-size:9pt; font-weight:600; letter-spacing:2pt;
-                       text-transform:uppercase;">Equity Research Report</span>
-          <br/>
-          <span style="color:rgba(255,255,255,0.45); font-size:7.5pt;
-                       letter-spacing:1pt;">CB CF &middot; FS &middot; OM</span>
-        </div>
       </div>
 
       <!-- Spacer -->
