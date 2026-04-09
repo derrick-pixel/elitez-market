@@ -1223,60 +1223,49 @@ def _build_cs_content(ticker: str, cs: dict, cs_narrative: str) -> str:
 
 def _build_disclaimers(ticker: str, today_str: str) -> str:
     return f"""
-    <div style="page-break-inside:avoid; page-break-after:avoid;">
+    <div>
       {_page_header(ticker)}
       {_section_bar("Important Disclosures & Disclaimer")}
 
-      <div style="font-size:9pt; color:{GREY}; line-height:1.7;">
-        <div style="margin-bottom:12pt;">
-          <div style="font-weight:700; color:{DARK_TEXT}; margin-bottom:4pt;">Not Investment Advice</div>
+      <div style="font-size:8pt; color:{GREY}; line-height:1.6;">
+        <div style="margin-bottom:8pt;">
+          <div style="font-weight:700; color:{DARK_TEXT}; margin-bottom:2pt; font-size:8.5pt;">Not Investment Advice</div>
           <div>This report has been prepared by Elitez Asia's Analytics solely for informational and educational purposes. Nothing contained in this report constitutes investment advice, a solicitation, an offer to buy or sell any security, or a recommendation of any investment strategy. The analysis and opinions expressed herein are based on publicly available financial data and do not represent the views of any regulated financial institution or licensed investment adviser.</div>
         </div>
 
-        <div style="margin-bottom:12pt;">
-          <div style="font-weight:700; color:{DARK_TEXT}; margin-bottom:4pt;">Data Sources &amp; Limitations</div>
-          <div>Financial data is sourced from public filings (SEC/EDGAR), market data providers, and news sources via automated data feeds. While reasonable care has been taken to ensure accuracy, Elitez Asia's Analytics makes no warranty, express or implied, as to the completeness, timeliness, or accuracy of any data. Market data reflects conditions as at the report date ({today_str}) and may have changed materially since publication. Operations Management metrics (e.g. OEE, Cpk, actual queue lengths) are estimated from public financial statements and are not directly observed internal metrics.</div>
+        <div style="margin-bottom:8pt;">
+          <div style="font-weight:700; color:{DARK_TEXT}; margin-bottom:2pt; font-size:8.5pt;">Data Sources &amp; Limitations</div>
+          <div>Financial data is sourced from public filings (SEC/EDGAR), market data providers, and news sources via automated data feeds. While reasonable care has been taken to ensure accuracy, Elitez Asia's Analytics makes no warranty, express or implied, as to the completeness, timeliness, or accuracy of any data. Market data reflects conditions as at the report date ({today_str}) and may have changed materially since publication.</div>
         </div>
 
-        <div style="margin-bottom:12pt;">
-          <div style="font-weight:700; color:{DARK_TEXT}; margin-bottom:4pt;">AI-Generated Content</div>
+        <div style="margin-bottom:8pt;">
+          <div style="font-weight:700; color:{DARK_TEXT}; margin-bottom:2pt; font-size:8.5pt;">AI-Generated Content</div>
           <div>Portions of this report (Investment Thesis and OM Narrative sections) are generated using AI models based on structured financial data and publicly available news. AI-generated content is provided as a starting point for analysis and should be independently verified. It does not constitute professional financial advice.</div>
         </div>
 
-        <div style="margin-bottom:12pt;">
-          <div style="font-weight:700; color:{DARK_TEXT}; margin-bottom:4pt;">Analytical Frameworks</div>
+        <div style="margin-bottom:8pt;">
+          <div style="font-weight:700; color:{DARK_TEXT}; margin-bottom:2pt; font-size:8.5pt;">Analytical Frameworks</div>
           <div>Valuation and financial strategy frameworks referenced in this report are derived from publicly available academic and practitioner literature, including the University of Chicago Booth School of Business course materials. Altman Z-Score was developed for manufacturing firms; results for financial services, technology, and asset-light businesses should be interpreted with caution.</div>
         </div>
 
-        <div style="margin-bottom:12pt;">
-          <div style="font-weight:700; color:{DARK_TEXT}; margin-bottom:4pt;">No Liability</div>
+        <div style="margin-bottom:8pt;">
+          <div style="font-weight:700; color:{DARK_TEXT}; margin-bottom:2pt; font-size:8.5pt;">No Liability</div>
           <div>Elitez Asia's Analytics, its affiliates, and contributors accept no liability for any loss or damage arising from the use of, or reliance on, information in this report. Past performance of any security referenced herein is not a reliable indicator of future results. All investments carry risk, including the possible loss of principal.</div>
         </div>
       </div>
 
-      <!-- Footer band -->
-      <div style="margin-top:30pt; border-top:2px solid {MAROON}; padding-top:12pt;">
+      <!-- Compact footer — same page as disclaimers -->
+      <div style="margin-top:8pt; border-top:1px solid {BORDER_COLOR}; padding-top:6pt;">
         <table width="100%"><tr>
-          <td style="vertical-align:top;">
-            <div>
-              <img src="data:image/png;base64,{_LOGO_B64_SM}" height="20" style="vertical-align:middle;" />
-              <span style="font-size:9pt; font-weight:700; color:{MAROON}; margin-left:8pt;
-                           vertical-align:middle;">ELITEZ ASIA'S ANALYTICS</span>
-            </div>
-            <div style="font-size:8pt; color:{GREY}; margin-top:4pt;">
-              elitez-market.streamlit.app &middot; Powered by Elitez-CB Analysis
-            </div>
+          <td style="vertical-align:top; font-size:7pt; color:{GREY};">
+            <span style="font-weight:700; color:{MAROON};">Elitez Asia's Analytics</span>
+            &middot; elitez-market.streamlit.app &middot; Powered by Elitez-CB Analysis
           </td>
-          <td style="text-align:right; vertical-align:top;">
-            <div style="font-size:8pt; color:{GREY};">Report generated: {today_str}</div>
-            <div style="font-size:8pt; color:{GREY};">Ticker: {ticker}</div>
-            <div style="font-size:8pt; color:{GREY};">&copy; 2026 Elitez Asia's Analytics. All rights reserved.</div>
+          <td style="text-align:right; vertical-align:top; font-size:7pt; color:{GREY};">
+            Ticker: {ticker} &middot; &copy; 2026 Elitez Asia's Analytics
           </td>
         </tr></table>
       </div>
-
-      <!-- Dark maroon band (reduced from 80pt to 8pt to avoid empty last page) -->
-      <div style="background:{MAROON}; height:8pt; margin-top:12pt;"></div>
     </div>
     """
 
