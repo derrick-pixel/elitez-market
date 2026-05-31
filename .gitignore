@@ -6,3 +6,7 @@ node_modules/
 *.pdf
 !showcase/**/*.pdf
 .gstack/
+
+# --- standardized hygiene (added by maintenance) ---
+.next/
+.env
