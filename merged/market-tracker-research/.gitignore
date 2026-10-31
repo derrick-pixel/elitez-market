@@ -1,0 +1,12 @@
+.DS_Store
+node_modules/
+*.log
+.vscode/
+.idea/
+*.pdf
+!showcase/**/*.pdf
+.gstack/
+
+# --- standardized hygiene (added by maintenance) ---
+.next/
+.env
