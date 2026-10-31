@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MARKET TRACKER :: OVERVIEW :: PIT FLOOR</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/img/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../assets/img/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../assets/img/apple-touch-icon.png">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Market Tracker · Overview — Pit Floor terminal">
+  <meta property="og:description" content="KPI strip, top-5 competitor threats, full searchable competitor roster. Pit-floor terminal aesthetic. Built by Elitez Asia.">
+  <meta property="og:url" content="https://derrick-pixel.github.io/market-tracker-research/template/admin/index.html">
+  <meta property="og:image" content="https://derrick-pixel.github.io/market-tracker-research/template/assets/img/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Market Tracker — Booth-EMBA framework on every ticker. Pit-floor terminal aesthetic.">
+  <meta property="og:site_name" content="Market Tracker Research">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Market Tracker · Overview — Pit Floor terminal">
+  <meta name="twitter:description" content="KPI strip, top-5 competitor threats, full searchable competitor roster.">
+  <meta name="twitter:image" content="https://derrick-pixel.github.io/market-tracker-research/template/assets/img/og-image.png">
+  <meta name="description" content="Market Tracker 2026 overview — KPI strip, top-5 competitor threats, full competitor roster, market map. Pit-floor terminal aesthetic.">
+  <meta name="robots" content="noindex, follow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/pit-floor.css">
+  <script src="../assets/kit/vendor/chart.umd.js"></script>
+  <style>
+    /* ---- Search bar ---- */
+    .search-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: stretch; }
+    .search-bar {
+      flex: 1 1 240px; min-width: 220px;
+      padding: 10px 14px;
+      background: #060606; color: var(--ink);
+      border: 1px solid var(--line);
+      font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+      letter-spacing: 0.04em;
+    }
+    .search-bar::placeholder { color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; font-size: 11px; }
+    .search-bar:focus { outline: none; border-color: var(--amber); }
+    .search-meta {
+      padding: 10px 14px;
+      background: #0c0c0c;
+      border: 1px solid var(--line);
+      color: var(--dim);
+      font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .search-meta b { color: var(--amber); }
+
+    /* Roster table specifics */
+    .roster .name a { color: var(--amber); }
+    .roster .name a:hover { color: var(--cyan); }
+    .roster .px { color: var(--green); }
+    .roster .px.zero { color: var(--dim); }
+    .roster .px.unknown { color: var(--dim); }
+    .roster .cat { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cyan); }
+  
+    /* ─── Last-edited stamp · injected ─── */
+    .last-edited-strip {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
+      padding: 5px 14px; text-align: right;
+      font-family: ui-monospace, "Share Tech Mono", monospace;
+      font-size: 0.72rem; letter-spacing: 0.05em;
+      color: rgba(140,140,140,0.85);
+      background: rgba(0,0,0,0.55); backdrop-filter: blur(8px);
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .last-edited-strip strong { color: rgba(220,220,220,0.85); font-weight: 500; }
+    #last-edited { color: #d06010; font-weight: 600; }
+    #last-edited.fresh { color: #0a8a4a; }
+    #last-edited.stale { color: #c82040; }
+  </style>
+</head>
+<body>
+
+  <div class="status-bar">
+    <span><span class="pip">▮</span> MARKET TRACKER // OVERVIEW // 2026-05-03 // <span class="live">SESSION ACTIVE</span> <span class="cursor"></span></span>
+    <span>SRC: competitors.json · market-intelligence.json</span>
+    <span style="margin-left:auto;">PIT FLOOR · vol.01</span>
+  </div>
+
+  <nav class="pit-nav">
+    <a href="index.html" class="active">Overview</a>
+    <a href="insights-terminal.html">Insights · Pit Floor</a>
+    <a href="whitespace.html">Whitespace Atlas</a>
+    <a href="design-audit.html">Design Audit</a>
+    <a href="report.html">Report</a>
+    <span class="spacer"></span>
+    <a href="../../index.html" class="ext">↩ Public site</a>
+    <a href="https://elitez-market.streamlit.app/" target="_blank" rel="noopener" class="ext">↗ Live product</a>
+  </nav>
+
+  <div class="ticker">
+    <div class="ticker-track" id="ticker-track">loading…</div>
+  </div>
+
+  <div class="frame">
+
+    <section class="hero">
+      <div>
+        <div class="kicker">[ INSTRUMENT 01 / OVERVIEW ]</div>
+        <h1>Overview <span class="accent">::</span> Roster &amp; Market</h1>
+        <div class="sub">KPI strip · Top-5 competitor threats · Full competitor roster · Threat map.</div>
+      </div>
+      <div class="meta-block">
+        <strong>MARKET TRACKER 2026</strong>
+        Booth-EMBA Equity Analysis<br>
+        Singapore · SGD<br>
+        An Elitez Group instrument
+      </div>
+    </section>
+
+    <!-- KPI strip -->
+    <div class="kpis" id="kpis"></div>
+
+    <!-- Top-5 Bill -->
+    <section class="section">
+      <div class="section-head">
+        <span class="title">▼ TOP-5 :: TONIGHT'S BILL</span>
+        <span class="meta" id="top5-meta">Ranked by structural threat</span>
+      </div>
+      <div class="section-body">
+        <div class="bill-grid" id="bill"></div>
+      </div>
+    </section>
+
+    <!-- Roster -->
+    <section class="section">
+      <div class="section-head">
+        <span class="title">▼ ROSTER :: COMPETITOR DATABASE</span>
+        <span class="meta" id="roster-meta"></span>
+      </div>
+      <div class="section-body">
+        <div class="search-row">
+          <input class="search-bar" id="search" placeholder="filter by name / category / hq / target market…" />
+          <div class="search-meta">SHOWN <b id="shown">0</b> / <span id="total">0</span></div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="pit-table roster" id="roster">
+            <thead>
+              <tr>
+                <th>NAME</th>
+                <th>CATEGORY</th>
+                <th>HQ</th>
+                <th>TARGET MARKET</th>
+                <th>SGD/MO</th>
+                <th>THREAT</th>
+                <th>BEAT.</th>
+              </tr>
+            </thead>
+            <tbody id="roster-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Two charts: category mix donut + price bars -->
+    <div style="display:grid; grid-template-columns: 1fr 1.4fr; gap: 16px;">
+      <div class="chart-frame">
+        <div class="title">CHT.01 :: CATEGORY MIX</div>
+        <div class="sub">Distribution of the 30 mapped competitors by category lane.</div>
+        <div class="chart-canvas"><canvas id="cat-donut"></canvas></div>
+      </div>
+      <div class="chart-frame">
+        <div class="title">CHT.02 :: PUBLISHED PRICE BOOK</div>
+        <div class="sub">Monthly SGD published or estimated for each named competitor (free = 0).</div>
+        <div class="chart-canvas tall"><canvas id="price-bars"></canvas></div>
+      </div>
+    </div>
+
+    <footer class="pit-footer">
+      <span>MARKET TRACKER · ELITEZ GROUP · PIT FLOOR INSTRUMENT</span>
+      <span><a href="insights-terminal.html">↪ insights · pit floor</a> · <a href="whitespace.html">whitespace atlas</a> · <a href="report.html">report</a></span>
+    </footer>
+  </div>
+
+  <script type="module">
+    import { loadAppData } from '../assets/kit/js/app.js';
+    import { h, mount } from '../assets/kit/js/dom.js';
+
+    const { competitors, market } = await loadAppData();
+    const ms = market.market_size || {};
+    const COMPS = competitors.competitors || [];
+    const TOP5 = competitors.top_five || [];
+    const compById = Object.fromEntries(COMPS.map(c => [c.id, c]));
+
+    /* ---- Currency helpers ---- */
+    const fmtMoney = n => {
+      if (n == null) return ['—', ''];
+      if (n >= 1e9) return [(n / 1e9).toFixed(n >= 1e10 ? 0 : 1), 'B'];
+      if (n >= 1e6) return [(n / 1e6).toFixed(n >= 1e8 ? 0 : 1), 'M'];
+      if (n >= 1e3) return [(n / 1e3).toFixed(n >= 1e5 ? 0 : 1), 'K'];
+      return [String(Math.round(n)), ''];
+    };
+
+    /* ---- Ticker tape ---- */
+    const tickerItems = [];
+    const [tamV, tamU] = fmtMoney(ms.tam_sgd);
+    const [samV, samU] = fmtMoney(ms.sam_sgd);
+    const [somV, somU] = fmtMoney(ms.som_sgd);
+    tickerItems.push({ s: 'TAM', p: `S$${tamV}${tamU}`, d: '+2.30%', up: true });
+    tickerItems.push({ s: 'SAM', p: `S$${samV}${samU}`, d: '+1.10%', up: true });
+    tickerItems.push({ s: 'SOM', p: `S$${somV}${somU}`, d: '+5.00%', up: true });
+    COMPS.slice(0, 12).forEach((c, i) => {
+      const fakeUp = i % 3 !== 0;
+      tickerItems.push({
+        s: (c.name || '').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8),
+        p: c.sg_monthly_sgd != null ? `S$${c.sg_monthly_sgd}` : 'NQ',
+        d: fakeUp ? `+${(Math.random()*2.4+0.2).toFixed(2)}%` : `-${(Math.random()*1.8+0.1).toFixed(2)}%`,
+        up: fakeUp
+      });
+    });
+    const trackEl = document.getElementById('ticker-track');
+    trackEl.replaceChildren();
+    for (let pass = 0; pass < 2; pass++) {
+      for (const t of tickerItems) {
+        trackEl.append(
+          h('span', { class: 'item' },
+            h('span', { class: 'sym' }, t.s),
+            h('span', { class: 'px' }, t.p),
+            h('span', { class: t.up ? 'up' : 'down' }, (t.up ? '▲ ' : '▼ ') + t.d)
+          )
+        );
+      }
+    }
+
+    /* ---- KPI strip ---- */
+    const kpiTile = (sym, n, sub, deltaPct, up) => {
+      const [v, u] = fmtMoney(n);
+      return h('div', { class: 'kpi' },
+        h('div', { class: 'sym' }, sym),
+        h('div', { class: 'px' }, 'S$' + v, h('span', { class: 'unit' }, u)),
+        h('div', { class: 'delta' + (up ? '' : ' dn') }, (up ? '▲ ' : '▼ ') + deltaPct),
+        h('div', { class: 'sub-row' }, sub)
+      );
+    };
+    mount(document.getElementById('kpis'),
+      kpiTile('TAM', ms.tam_sgd, 'Global retail-investor research-tools spend.', '+2.30%', true),
+      kpiTile('SAM', ms.sam_sgd, 'SE-Asia prosumer + EMBA cohort reachable today.', '+1.10%', true),
+      kpiTile('SOM', ms.som_sgd, '3-yr capture under Elitez channel + Booth halo.', '+5.00%', true),
+    );
+
+    /* ---- Top-5 Bill ---- */
+    const billEl = document.getElementById('bill');
+    mount(billEl, ...TOP5.map(t => {
+      const c = compById[t.competitor_id] || {};
+      return h('div', { class: 'bill-card' },
+        h('div', { class: 'rank-row' },
+          h('div', { class: 'rank' }, '#' + (t.rank || '?')),
+          h('div', { class: 'rank-tag' }, c.category ? c.category.replace(/_/g,' ') : 'unmapped')
+        ),
+        h('h4', {}, c.name || t.competitor_id),
+        h('div', { class: 'meta-row' },
+          c.threat_level != null ? h('span', { class: 'chip threat-' + c.threat_level }, 'THREAT ' + c.threat_level) : null,
+          c.beatability != null ? h('span', { class: 'chip' }, 'BEAT.' + c.beatability) : null,
+          c.sg_monthly_sgd != null ? h('span', { class: 'chip' }, 'S$' + c.sg_monthly_sgd + '/MO') : h('span', { class: 'chip' }, 'NQ')
+        ),
+        h('p', {}, t.rationale || ''),
+        h('div', { class: 'src-row' }, c.url ? h('a', { href: c.url, target: '_blank', rel: 'noopener' }, '↗ ' + c.url.replace(/^https?:\/\//,'').replace(/\/.*$/,'')) : '— internal —')
+      );
+    }));
+    document.getElementById('top5-meta').textContent = `${TOP5.length} ranked · structural`;
+
+    /* ---- Roster table with search ---- */
+    const rosterBody = document.getElementById('roster-body');
+    const shownEl = document.getElementById('shown');
+    const totalEl = document.getElementById('total');
+    const searchEl = document.getElementById('search');
+
+    const renderRow = c => h('tr', {},
+      h('td', { class: 'name' },
+        c.url ? h('a', { href: c.url, target: '_blank', rel: 'noopener' }, c.name)
+              : c.name
+      ),
+      h('td', { class: 'cat' }, (c.category || '—').replace(/_/g,' ')),
+      h('td', { class: 'dim' }, c.hq || '—'),
+      h('td', { class: 'dim' }, (c.target_market || []).slice(0,2).join(' · ')),
+      h('td', { class: 'right px ' + (c.sg_monthly_sgd === 0 ? 'zero' : c.sg_monthly_sgd == null ? 'unknown' : '') },
+        c.sg_monthly_sgd === 0 ? 'FREE' : c.sg_monthly_sgd == null ? 'NQ' : 'S$' + c.sg_monthly_sgd
+      ),
+      h('td', { class: 'right' },
+        c.threat_level != null ? h('span', { class: 'chip threat-' + c.threat_level }, String(c.threat_level)) : '—'
+      ),
+      h('td', { class: 'right' },
+        c.beatability != null ? h('span', { class: 'chip' }, String(c.beatability)) : '—'
+      )
+    );
+
+    function refreshRoster() {
+      const q = (searchEl.value || '').trim().toLowerCase();
+      const filtered = COMPS.filter(c => {
+        if (!q) return true;
+        const blob = [c.name, c.category, c.hq, c.hq_region, ...(c.target_market||[]), c.primary_value_prop || '']
+          .join(' ').toLowerCase();
+        return blob.includes(q);
+      });
+      mount(rosterBody, ...filtered.map(renderRow));
+      shownEl.textContent = filtered.length;
+      totalEl.textContent = COMPS.length;
+    }
+    searchEl.addEventListener('input', refreshRoster);
+    refreshRoster();
+    document.getElementById('roster-meta').textContent = `${COMPS.length} competitors mapped`;
+
+    /* ---- Charts ---- */
+    const catCounts = {};
+    for (const c of COMPS) catCounts[c.category || 'unmapped'] = (catCounts[c.category || 'unmapped'] || 0) + 1;
+    const catEntries = Object.entries(catCounts).sort((a,b) => b[1]-a[1]);
+    new Chart(document.getElementById('cat-donut').getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: catEntries.map(e => e[0].replace(/_/g,' ')),
+        datasets: [{
+          data: catEntries.map(e => e[1]),
+          backgroundColor: ['#9B1B30','#f7931e','#00d97f','#0aafd9','#7a4ed1','#c43a5a','#a05d14','#7a4710','#5a350c','#3e2408','#2a1905'],
+          borderColor: '#0a0a0a', borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'right', labels: { color: '#e8e6e3', font: { family: 'IBM Plex Mono', size: 11 } } }
+        }
+      }
+    });
+
+    const visible = COMPS.filter(c => c.sg_monthly_sgd != null && c.sg_monthly_sgd > 0).sort((a,b) => b.sg_monthly_sgd - a.sg_monthly_sgd).slice(0, 22);
+    const labels = visible.map(c => c.name);
+    const data = visible.map(c => c.sg_monthly_sgd);
+    new Chart(document.getElementById('price-bars').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'SGD/mo',
+          data,
+          backgroundColor: 'rgba(247,147,30,0.85)',
+          borderColor: 'rgba(247,147,30,1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        scales: {
+          x: { beginAtZero: true, ticks: { color: '#7a7770' }, grid: { color: '#1a1a1a' }, title: { display: true, text: 'S$ / month', color: '#7a7770' } },
+          y: { ticks: { color: '#e8e6e3', font: { family: 'IBM Plex Mono', size: 11 } }, grid: { color: '#1a1a1a' } }
+        },
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+  </script>
+
+<div class="last-edited-strip" role="status" aria-live="polite">
+  <strong>Page last edited:</strong> <span id="last-edited" data-edited="2026-05-03T22:45:44+08:00">checking…</span>
+</div>
+
+<script>
+(function () {
+  const el = document.getElementById('last-edited');
+  if (!el) return;
+  const iso = el.dataset.edited;
+  if (!iso) { el.textContent = '—'; return; }
+  const d = new Date(iso);
+  const fmt = d.toLocaleDateString('en-SG', { year: 'numeric', month: 'short', day: 'numeric' });
+  const ago = Math.floor((Date.now() - d.getTime()) / 86400000);
+  let suffix;
+  if (ago === 0) suffix = 'today';
+  else if (ago === 1) suffix = 'yesterday';
+  else if (ago < 14) suffix = ago + ' days ago';
+  else if (ago < 60) suffix = Math.floor(ago/7) + ' weeks ago';
+  else suffix = Math.floor(ago/30) + ' months ago';
+  el.textContent = fmt + ' · ' + suffix;
+  if (ago <= 7) el.classList.add('fresh');
+  else if (ago > 14) el.classList.add('stale');
+})();
+</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.106.1/dist/umd/supabase.js" integrity="sha384-8A8NbbMug1jd/CYs7b0nSc6FPM4L9GKg/VzKxg6hst+UgTcWTQr0ry7knxGrSOtT" crossorigin="anonymous"></script>
+  <script src="../assets/kit/js/auth-gate.js"></script>
+</body>
+</html>

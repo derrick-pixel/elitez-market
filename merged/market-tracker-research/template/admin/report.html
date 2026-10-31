@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MARKET TRACKER :: REPORT :: PIT FLOOR</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/img/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../assets/img/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../assets/img/apple-touch-icon.png">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Market Tracker · Report — Board-grade synthesis">
+  <meta property="og:description" content="Headline thesis, market sizing, top-5 competitor threats, attack plans, recommended pricing, 6 actions for the next 90 days. Print-to-PDF ready.">
+  <meta property="og:url" content="https://derrick-pixel.github.io/market-tracker-research/template/admin/report.html">
+  <meta property="og:image" content="https://derrick-pixel.github.io/market-tracker-research/template/assets/img/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Market Tracker — Booth-EMBA framework on every ticker. Pit-floor terminal aesthetic.">
+  <meta property="og:site_name" content="Market Tracker Research">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Market Tracker · Report — Board-grade synthesis">
+  <meta name="twitter:description" content="Headline thesis, market sizing, top-5 competitor threats, attack plans, recommended pricing.">
+  <meta name="twitter:image" content="https://derrick-pixel.github.io/market-tracker-research/template/assets/img/og-image.png">
+  <meta name="description" content="Market Tracker 2026 board-grade synthesis report. Pit-floor terminal aesthetic. Print- and PDF-ready.">
+  <meta name="robots" content="noindex, follow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/pit-floor.css">
+  <style>
+    .download-row {
+      display: flex; gap: 10px; flex-wrap: wrap;
+      padding: 12px 16px; border: 1px solid var(--line);
+      background: var(--panel); margin-bottom: 16px; align-items: center;
+    }
+    .download-row .lbl { color: var(--dim); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+    .btn {
+      padding: 8px 14px;
+      border: 1px solid var(--maroon);
+      background: var(--maroon); color: white;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-weight: 600; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer;
+    }
+    .btn:hover { background: transparent; color: var(--maroon); }
+    .btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+    .btn.ghost:hover { border-color: var(--amber); color: var(--amber); }
+    .syn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .syn-grid .syn { border: 1px solid var(--line); background: var(--panel-2); padding: 14px 16px; }
+    .syn h4 {
+      font-family: 'IBM Plex Sans', sans-serif;
+      color: var(--amber); font-size: 12px; letter-spacing: 0.06em;
+      text-transform: uppercase; margin: 0 0 8px 0; font-weight: 600;
+    }
+    .syn ul { margin: 0; padding-left: 18px; font-size: 12px; color: var(--ink); }
+    .syn li { margin-bottom: 6px; line-height: 1.55; }
+    .syn p { margin: 0 0 8px 0; font-size: 12px; color: var(--ink); line-height: 1.55; }
+    .num-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+    .num-tile {
+      border: 1px solid var(--line); background: var(--panel-2);
+      padding: 12px 14px;
+    }
+    .num-tile .lbl { color: var(--amber); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
+    .num-tile .val {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-weight: 700; color: var(--ink); font-size: 22px; letter-spacing: -0.02em; margin-top: 4px;
+    }
+    .num-tile .sub { color: var(--dim); font-size: 11px; margin-top: 4px; line-height: 1.4; }
+
+    .tier-line {
+      display: grid; grid-template-columns: 200px 80px 1fr;
+      gap: 14px; padding: 8px 0; border-bottom: 1px dashed var(--line-soft);
+      font-size: 12px; align-items: baseline;
+    }
+    .tier-line:last-child { border-bottom: none; }
+    .tier-line .name { color: var(--amber); font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 13px; }
+    .tier-line .px { color: var(--ink); font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 14px; text-align: right; }
+    .tier-line .px.free { color: var(--green); }
+    .tier-line .desc { color: var(--ink); font-size: 12px; }
+
+    @media (max-width: 920px) {
+      .syn-grid, .num-strip { grid-template-columns: 1fr; }
+    }
+  
+    /* ─── Last-edited stamp · injected ─── */
+    .last-edited-strip {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
+      padding: 5px 14px; text-align: right;
+      font-family: ui-monospace, "Share Tech Mono", monospace;
+      font-size: 0.72rem; letter-spacing: 0.05em;
+      color: rgba(140,140,140,0.85);
+      background: rgba(0,0,0,0.55); backdrop-filter: blur(8px);
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .last-edited-strip strong { color: rgba(220,220,220,0.85); font-weight: 500; }
+    #last-edited { color: #d06010; font-weight: 600; }
+    #last-edited.fresh { color: #0a8a4a; }
+    #last-edited.stale { color: #c82040; }
+  </style>
+</head>
+<body>
+
+  <div class="status-bar">
+    <span><span class="pip">▮</span> MARKET TRACKER // REPORT // 2026-05-03 // <span class="live">SESSION ACTIVE</span> <span class="cursor"></span></span>
+    <span>SRC: all four data files · synthesised</span>
+    <span style="margin-left:auto;">PIT FLOOR · vol.01</span>
+  </div>
+
+  <nav class="pit-nav">
+    <a href="index.html">Overview</a>
+    <a href="insights-terminal.html">Insights · Pit Floor</a>
+    <a href="whitespace.html">Whitespace Atlas</a>
+    <a href="design-audit.html">Design Audit</a>
+    <a href="report.html" class="active">Report</a>
+    <span class="spacer"></span>
+    <a href="../../index.html" class="ext">↩ Public site</a>
+    <a href="https://elitez-market.streamlit.app/" target="_blank" rel="noopener" class="ext">↗ Live product</a>
+  </nav>
+
+  <div class="frame">
+
+    <section class="hero">
+      <div>
+        <div class="kicker">[ INSTRUMENT 05 / BOARD-GRADE SYNTHESIS ]</div>
+        <h1>Report <span class="accent">::</span> Synthesis</h1>
+        <div class="sub">Headline thesis · Numbers · Top-5 threats · Whitespace · Pricing · Recommended actions.</div>
+      </div>
+      <div class="meta-block">
+        <strong>MARKET TRACKER 2026</strong>
+        Booth-EMBA Equity Analysis<br>
+        Singapore · SGD<br>
+        An Elitez Group instrument
+      </div>
+    </section>
+
+    <div class="download-row">
+      <span class="lbl">Export</span>
+      <button class="btn" onclick="window.print()">▼ Print / Save as PDF</button>
+      <a class="btn ghost" href="../data/competitors.json" target="_blank">competitors.json</a>
+      <a class="btn ghost" href="../data/market-intelligence.json" target="_blank">market-intelligence.json</a>
+      <a class="btn ghost" href="../data/pricing-strategy.json" target="_blank">pricing-strategy.json</a>
+      <a class="btn ghost" href="../data/whitespace-framework.json" target="_blank">whitespace-framework.json</a>
+    </div>
+
+    <!-- Headline thesis -->
+    <section class="section">
+      <div class="section-head">
+        <span class="title">▼ THS :: HEADLINE THESIS</span>
+        <span class="meta">2026-05-03</span>
+      </div>
+      <div class="section-body">
+        <p id="thesis" style="font-size:15px; line-height:1.6; color:var(--ink); margin: 0; max-width: 920px; font-family: 'IBM Plex Sans', sans-serif;"></p>
+      </div>
+    </section>
+
+    <!-- Numbers strip -->
+    <section class="section">
+      <div class="section-head">
+        <span class="title">▼ NUM :: HEADLINE NUMBERS</span>
+        <span class="meta">all in SGD</span>
+      </div>
+      <div class="section-body">
+        <div class="num-strip" id="num-strip"></div>
+      </div>
+    </section>
+
+    <!-- Synthesis grid -->
+    <section class="section">
+      <div class="section-head">
+        <span class="title">▼ SYN :: TWO-PAGER SYNTHESIS</span>
+        <span class="meta">CF-FS-OM-CS-grade read</span>
+      </div>
+      <div class="section-body">
+        <div class="syn-grid">
+          <div class="syn">
+            <h4>▸ TOP-5 STRUCTURAL THREATS</h4>
+            <ol id="top5-list" style="margin:0; padding-left:18px;"></ol>
+          </div>
+          <div class="syn">
+            <h4>▸ STRATEGIC IMPLICATIONS (MARKET-LEVEL)</h4>
+            <ul id="impl-list"></ul>
+          </div>
+          <div class="syn">
+            <h4>▸ FIVE RANKED ATTACK PLANS</h4>
+            <ol id="atk-list" style="margin:0; padding-left:18px;"></ol>
+          </div>
+          <div class="syn">
+            <h4>▸ RECOMMENDED PRICING TIERS</h4>
+            <div id="tiers"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recommended actions -->
+    <section class="section">
+      <div class="section-head">
+        <span class="title">▼ ACT :: RECOMMENDED ACTIONS (NEXT 90 DAYS)</span>
+        <span class="meta">opinionated</span>
+      </div>
+      <div class="section-body">
+        <ol style="margin:0; padding-left: 22px; font-size: 13px; color: var(--ink); line-height: 1.7;">
+          <li><b style="color:var(--amber);">Lock the Booth-EMBA methodology brand line.</b> Publish a single canonical "Methodology + AI Guardrails" page disclosing model (Claude Sonnet), retrieval scope (yfinance financial statements), and the four module formulas. This is the differentiator vs Simply Wall St / TipRanks (proprietary) and ChatGPT (ungrounded). No other 90-day work is more important.</li>
+          <li><b style="color:var(--amber);">Ship the Pro tier (S$29/mo).</b> Add login + watchlists + email alerts + full ticker scope (S&amp;P 500 + SGX STI + HK + ASX). Conversion target: 4% of free guests inside 90 days, anchored against Simply Wall St freemium benchmarks.</li>
+          <li><b style="color:var(--amber);">Run two EMBA cohort pilots.</b> NUS or SMU EMBA programme this term. Site licence S$4,500/yr. Halo + alumni-Pro funnel + classroom case-study templates ship with the pilot.</li>
+          <li><b style="color:var(--amber);">Elitez Pulse cross-sell experiment.</b> 60-day free trial of Pro for 50 named SG SME CFO contacts inside the Elitez client base. Volume-seeding + testimonial harvest + EMBA spouse referrals.</li>
+          <li><b style="color:var(--amber);">Open the boutique-fund Team conversation.</b> Direct outreach to 30 SG / HK boutique funds + family offices. SGD 199/mo for 3 seats. Opportunity-cost framing in the deck (4 hrs saved x 8 names x S$80/hr = S$2,560/mo vs SGD 199 ask).</li>
+          <li><b style="color:var(--amber);">Defer:</b> Building Bloomberg-grade ratio depth, real-time market data feed, multi-language narrative, on-prem deployment. None of these win the SOM in the next 12 months.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Methodology -->
+    <section class="section">
+      <div class="section-head">
+        <span class="title">▼ APX :: METHODOLOGY APPENDIX</span>
+        <span class="meta" id="src-meta">sources cited</span>
+      </div>
+      <div class="section-body">
+        <p style="font-size:12px; color:var(--ink); line-height:1.6; max-width:920px; white-space: pre-wrap;" id="methodology"></p>
+        <h4 style="margin: 18px 0 8px 0; color: var(--amber); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;">▸ Sources</h4>
+        <ul id="sources" style="margin:0; padding-left: 18px; font-size: 12px; color: var(--ink); line-height: 1.7;"></ul>
+      </div>
+    </section>
+
+    <footer class="pit-footer">
+      <span>MARKET TRACKER · ELITEZ GROUP · PIT FLOOR INSTRUMENT · COMPILED 2026-05-03</span>
+      <span><a href="index.html">↩ overview</a> · <a href="insights-terminal.html">insights</a> · <a href="whitespace.html">whitespace</a> · <a href="design-audit.html">design audit</a></span>
+    </footer>
+  </div>
+
+  <script type="module">
+    import { loadAppData } from '../assets/kit/js/app.js';
+    import { h, mount } from '../assets/kit/js/dom.js';
+
+    const { competitors, market, pricing, whitespace } = await loadAppData();
+    const ms = market.market_size || {};
+    const sc = whitespace.strategy_canvas || {};
+
+    /* ---- Currency helpers ---- */
+    const fmtMoney = n => {
+      if (n == null) return '—';
+      if (n >= 1e9) return 'S$' + (n/1e9).toFixed(n >= 1e10 ? 0 : 1) + 'B';
+      if (n >= 1e6) return 'S$' + (n/1e6).toFixed(n >= 1e8 ? 0 : 1) + 'M';
+      if (n >= 1e3) return 'S$' + (n/1e3).toFixed(0) + 'K';
+      return 'S$' + Math.round(n).toLocaleString();
+    };
+
+    /* ---- Thesis ---- */
+    document.getElementById('thesis').textContent = sc.headline_thesis || '';
+
+    /* ---- Number strip ---- */
+    const numStrip = document.getElementById('num-strip');
+    const tile = (lbl, val, sub) => h('div', { class: 'num-tile' },
+      h('div', { class: 'lbl' }, lbl),
+      h('div', { class: 'val' }, val),
+      h('div', { class: 'sub' }, sub)
+    );
+    mount(numStrip,
+      tile('TAM', fmtMoney(ms.tam_sgd), 'Global retail-investor research-tools spend.'),
+      tile('SAM', fmtMoney(ms.sam_sgd), 'SE-Asia prosumer + EMBA cohort pool.'),
+      tile('SOM (3-YR)', fmtMoney(ms.som_sgd), 'Elitez-channel-led capture target.'),
+      tile('COMPETITORS', String(competitors.competitors?.length || 0), 'mapped across 14 categories.')
+    );
+
+    /* ---- Top-5 list ---- */
+    const compById = Object.fromEntries((competitors.competitors||[]).map(c => [c.id, c]));
+    const top5El = document.getElementById('top5-list');
+    top5El.replaceChildren(...(competitors.top_five || []).map(t => {
+      const c = compById[t.competitor_id] || {};
+      return h('li', { style: { marginBottom: '10px', lineHeight: '1.55' } },
+        h('b', { style: { color: 'var(--amber)' } }, c.name || t.competitor_id),
+        ' — ',
+        t.rationale || ''
+      );
+    }));
+
+    /* ---- Implications ---- */
+    const implEl = document.getElementById('impl-list');
+    implEl.replaceChildren(...(ms.implications || []).map(im =>
+      h('li', {},
+        h('b', { style: { color: 'var(--amber)' } }, '▸ ' + (im.headline || '')),
+        ' — ',
+        im.body || ''
+      )
+    ));
+
+    /* ---- Attack plans ---- */
+    const atkEl = document.getElementById('atk-list');
+    atkEl.replaceChildren(...(whitespace.attack_plans || []).map(a =>
+      h('li', { style: { marginBottom: '10px', lineHeight: '1.55' } },
+        h('b', { style: { color: 'var(--amber)' } }, a.niche_name || ''),
+        ' — ',
+        h('span', { style: { color: 'var(--green)' } }, fmtMoney(a.tam_estimate_sgd) + ' TAM. '),
+        a.why_we_win || ''
+      )
+    ));
+
+    /* ---- Tiers ---- */
+    const tiersEl = document.getElementById('tiers');
+    tiersEl.replaceChildren(...(pricing.recommended_tiers || []).map(t =>
+      h('div', { class: 'tier-line' },
+        h('div', { class: 'name' }, t.name),
+        h('div', { class: 'px' + (t.price_sgd === 0 ? ' free' : '') }, t.price_sgd === 0 ? 'FREE' : 'S$' + t.price_sgd),
+        h('div', { class: 'desc' }, t.target_persona + ' · ' + (t.psychological_anchor || ''))
+      )
+    ));
+
+    /* ---- Methodology + sources ---- */
+    document.getElementById('methodology').textContent = ms.methodology_appendix || '';
+    const srcs = ms.sources || [];
+    document.getElementById('src-meta').textContent = `${srcs.length} sources cited`;
+    document.getElementById('sources').replaceChildren(...srcs.map(s =>
+      h('li', {}, h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.title))
+    ));
+  </script>
+
+<div class="last-edited-strip" role="status" aria-live="polite">
+  <strong>Page last edited:</strong> <span id="last-edited" data-edited="2026-05-03T22:45:44+08:00">checking…</span>
+</div>
+
+<script>
+(function () {
+  const el = document.getElementById('last-edited');
+  if (!el) return;
+  const iso = el.dataset.edited;
+  if (!iso) { el.textContent = '—'; return; }
+  const d = new Date(iso);
+  const fmt = d.toLocaleDateString('en-SG', { year: 'numeric', month: 'short', day: 'numeric' });
+  const ago = Math.floor((Date.now() - d.getTime()) / 86400000);
+  let suffix;
+  if (ago === 0) suffix = 'today';
+  else if (ago === 1) suffix = 'yesterday';
+  else if (ago < 14) suffix = ago + ' days ago';
+  else if (ago < 60) suffix = Math.floor(ago/7) + ' weeks ago';
+  else suffix = Math.floor(ago/30) + ' months ago';
+  el.textContent = fmt + ' · ' + suffix;
+  if (ago <= 7) el.classList.add('fresh');
+  else if (ago > 14) el.classList.add('stale');
+})();
+</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.106.1/dist/umd/supabase.js" integrity="sha384-8A8NbbMug1jd/CYs7b0nSc6FPM4L9GKg/VzKxg6hst+UgTcWTQr0ry7knxGrSOtT" crossorigin="anonymous"></script>
+  <script src="../assets/kit/js/auth-gate.js"></script>
+</body>
+</html>

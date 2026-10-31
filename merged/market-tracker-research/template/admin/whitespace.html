@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MARKET TRACKER :: WHITESPACE ATLAS :: PIT FLOOR</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/img/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../assets/img/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../assets/img/apple-touch-icon.png">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Market Tracker · Whitespace Atlas — Pit Floor terminal">
+  <meta property="og:description" content="Strategy canvas radar, segment x need heatmap, five ranked attack-plan instrument cards. Pit-floor terminal aesthetic.">
+  <meta property="og:url" content="https://derrick-pixel.github.io/market-tracker-research/template/admin/whitespace.html">
+  <meta property="og:image" content="https://derrick-pixel.github.io/market-tracker-research/template/assets/img/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Market Tracker — Booth-EMBA framework on every ticker. Pit-floor terminal aesthetic.">
+  <meta property="og:site_name" content="Market Tracker Research">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Market Tracker · Whitespace Atlas — Pit Floor terminal">
+  <meta name="twitter:description" content="Strategy canvas radar, segment x need heatmap, five ranked attack plans.">
+  <meta name="twitter:image" content="https://derrick-pixel.github.io/market-tracker-research/template/assets/img/og-image.png">
+  <meta name="description" content="Market Tracker 2026 whitespace atlas — strategy canvas, segment x need heatmap, and 5 ranked attack plans. Pit-floor terminal aesthetic.">
+  <meta name="robots" content="noindex, follow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/pit-floor.css">
+  <script src="../assets/kit/vendor/chart.umd.js"></script>
+  <style>
+    .heat-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .heat-table th, .heat-table td {
+      padding: 8px 10px; border: 1px solid var(--line); text-align: center; vertical-align: middle;
+    }
+    .heat-table thead th {
+      background: #0c0c0c; color: var(--dim);
+      font-weight: 500; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .heat-table tbody th {
+      background: #0c0c0c; color: var(--ink); text-align: left;
+      font-weight: 500; font-family: 'IBM Plex Sans', sans-serif; font-size: 12px;
+    }
+    .heat-cell {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-weight: 600; font-size: 14px;
+    }
+    .heat-cell .ours {
+      color: var(--maroon); font-size: 11px; letter-spacing: 0.06em;
+      display: block; margin-top: 2px;
+    }
+    .heat-cell .ours b { color: var(--amber); font-size: 13px; font-weight: 700; }
+    .canvas-shell {
+      padding: 16px; border: 1px solid var(--line); background: var(--panel);
+      margin-bottom: 16px;
+    }
+    .canvas-shell .title {
+      color: var(--amber); font-size: 12px; letter-spacing: 0.08em;
+      text-transform: uppercase; margin-bottom: 4px;
+    }
+    .canvas-shell .sub { color: var(--dim); font-size: 11px; margin-bottom: 12px; }
+    .canvas-shell .holder { height: 480px; }
+    .legend-row { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: var(--dim); margin-top: 8px; letter-spacing: 0.06em; text-transform: uppercase; }
+    .legend-row .sw { display: inline-block; width: 11px; height: 11px; vertical-align: -1px; margin-right: 5px; border: 1px solid var(--line); }
+    .cell-detail summary {
+      cursor: pointer; color: var(--amber);
+      font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 8px 10px; background: #0c0c0c; border: 1px solid var(--line);
+    }
+    .cell-detail[open] summary { margin-bottom: 6px; }
+    .cell-detail ul { padding: 8px 14px 8px 26px; margin: 0; background: var(--panel-2); border: 1px solid var(--line); border-top: none; }
+    .cell-detail li { font-size: 12px; color: var(--ink); margin-bottom: 6px; }
+    .cell-detail li b { color: var(--amber); }
+  
+    /* ─── Last-edited stamp · injected ─── */
+    .last-edited-strip {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
+      padding: 5px 14px; text-align: right;
+      font-family: ui-monospace, "Share Tech Mono", monospace;
+      font-size: 0.72rem; letter-spacing: 0.05em;
+      color: rgba(140,140,140,0.85);
+      background: rgba(0,0,0,0.55); backdrop-filter: blur(8px);
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .last-edited-strip strong { color: rgba(220,220,220,0.85); font-weight: 500; }
+    #last-edited { color: #d06010; font-weight: 600; }
+    #last-edited.fresh { color: #0a8a4a; }
+    #last-edited.stale { color: #c82040; }
+  </style>
+</head>
+<body>
+
+  <div class="status-bar">
+    <span><span class="pip">▮</span> MARKET TRACKER // WHITESPACE // 2026-05-03 // <span class="live">SESSION ACTIVE</span> <span class="cursor"></span></span>
+    <span>SRC: whitespace-framework.json · competitors.json</span>
+    <span style="margin-left:auto;">PIT FLOOR · vol.01</span>
+  </div>
+
+  <nav class="pit-nav">
+    <a href="index.html">Overview</a>
+    <a href="insights-terminal.html">Insights · Pit Floor</a>
+    <a href="whitespace.html" class="active">Whitespace Atlas</a>
+    <a href="design-audit.html">Design Audit</a>
+    <a href="report.html">Report</a>
+    <span class="spacer"></span>
+    <a href="../../index.html" class="ext">↩ Public site</a>
+    <a href="https://elitez-market.streamlit.app/" target="_blank" rel="noopener" class="ext">↗ Live product</a>
+  </nav>
+
+  <div class="ticker">
+    <div class="ticker-track" id="ticker-track">loading…</div>
+  </div>
+
+  <div class="frame">
+
+    <section class="hero">
+      <div>
+        <div class="kicker">[ INSTRUMENT 03 / WHITESPACE ATLAS ]</div>
+        <h1>Whitespace <span class="accent">::</span> Atlas</h1>
+        <div class="sub">Strategy canvas radar · Segment x need heatmap · Five ranked attack plans.</div>
+        <p id="thesis" style="font-size:13px;color:var(--ink);max-width:760px;margin:14px 0 0 0;line-height:1.55;"></p>
+      </div>
+      <div class="meta-block">
+        <strong>MARKET TRACKER 2026</strong>
+        Booth-EMBA Equity Analysis<br>
+        Singapore · SGD<br>
+        An Elitez Group instrument
+      </div>
+    </section>
+
+    <!-- Strategy canvas radar -->
+    <section class="section">
+      <div class="section-head">
+        <span class="title">▼ CVS :: STRATEGY CANVAS</span>
+        <span class="meta" id="cvs-meta">8 dimensions · 9 players</span>
+      </div>
+      <div class="section-body">
+        <div class="canvas-shell">
+          <div class="title">CHT.01 :: WHERE WE OUTBID + UNDERBID</div>
+          <div class="sub">Each line is a player; each axis is a strategic dimension scored 0-5. Maroon = us.</div>
+          <div class="holder"><canvas id="radar"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Heatmap -->
+    <section class="section">
+      <div class="section-head">
+        <span class="title">▼ HEAT :: SEGMENT × NEED HEATMAP</span>
+        <span class="meta" id="heat-meta"></span>
+      </div>
+      <div class="section-body">
+        <table class="heat-table" id="heatmap"></table>
+        <div class="legend-row">
+          <span><span class="sw cell-hot"></span>HOT (us ≥ best competitor)</span>
+          <span><span class="sw cell-warm"></span>WARM (us = ±1 from best)</span>
+          <span><span class="sw cell-cold"></span>COLD (us &lt; best - 1)</span>
+        </div>
+        <div style="margin-top:14px; display:grid; grid-template-columns: 1fr; gap: 6px;" id="cell-drilldown"></div>
+      </div>
+    </section>
+
+    <!-- Attack plans -->
+    <section class="section">
+      <div class="section-head">
+        <span class="title">▼ ATK :: RANKED ATTACK PLANS</span>
+        <span class="meta" id="atk-meta"></span>
+      </div>
+      <div class="section-body">
+        <div class="attack-grid" id="attacks"></div>
+      </div>
+    </section>
+
+    <footer class="pit-footer">
+      <span>MARKET TRACKER · ELITEZ GROUP · PIT FLOOR INSTRUMENT</span>
+      <span><a href="index.html">↩ overview</a> · <a href="insights-terminal.html">insights · pit floor</a> · <a href="report.html">report</a></span>
+    </footer>
+  </div>
+
+  <script type="module">
+    import { loadAppData } from '../assets/kit/js/app.js';
+    import { h, mount } from '../assets/kit/js/dom.js';
+
+    const { whitespace, competitors } = await loadAppData();
+    const sc = whitespace.strategy_canvas || {};
+    const hm = whitespace.heatmap || {};
+    const attacks = whitespace.attack_plans || [];
+    const COMPS = competitors.competitors || [];
+
+    document.getElementById('thesis').textContent = sc.headline_thesis || '';
+
+    /* ---- Ticker ---- */
+    const tickerItems = [];
+    COMPS.slice(0, 14).forEach((c, i) => {
+      const fakeUp = i % 3 !== 0;
+      tickerItems.push({
+        s: (c.name || '').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8),
+        p: c.sg_monthly_sgd != null ? `S$${c.sg_monthly_sgd}` : 'NQ',
+        d: fakeUp ? `+${(Math.random()*2.4+0.2).toFixed(2)}%` : `-${(Math.random()*1.8+0.1).toFixed(2)}%`,
+        up: fakeUp
+      });
+    });
+    const trackEl = document.getElementById('ticker-track');
+    trackEl.replaceChildren();
+    for (let pass = 0; pass < 2; pass++) {
+      for (const t of tickerItems) {
+        trackEl.append(
+          h('span', { class: 'item' },
+            h('span', { class: 'sym' }, t.s),
+            h('span', { class: 'px' }, t.p),
+            h('span', { class: t.up ? 'up' : 'down' }, (t.up ? '▲ ' : '▼ ') + t.d)
+          )
+        );
+      }
+    }
+
+    /* ---- Strategy canvas radar ---- */
+    const dims = sc.dimensions || [];
+    const labels = dims.map(d => d.label);
+    const players = Object.keys(sc.scores || {});
+    const otherPalette = ['#f7931e','#00d97f','#0aafd9','#7a4ed1','#c43a5a','#a05d14','#3e2408','#5a350c','#7a7770'];
+    let pi = 0;
+    const datasets = players.map(p => {
+      const isUs = p === 'us';
+      const baseColor = isUs ? '#9B1B30' : otherPalette[pi++ % otherPalette.length];
+      return {
+        label: isUs ? 'US (Market Tracker)' : (COMPS.find(c => c.id === p)?.name || p),
+        data: dims.map(d => sc.scores[p][d.key] ?? 0),
+        borderColor: baseColor,
+        backgroundColor: isUs ? 'rgba(155,27,48,0.18)' : 'rgba(255,255,255,0.02)',
+        borderWidth: isUs ? 3 : 1.4,
+        pointRadius: isUs ? 4 : 2,
+        pointBackgroundColor: baseColor,
+        fill: isUs
+      };
+    });
+    new Chart(document.getElementById('radar').getContext('2d'), {
+      type: 'radar',
+      data: { labels, datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        scales: {
+          r: {
+            min: 0, max: 5,
+            ticks: { color: '#7a7770', backdropColor: 'transparent', stepSize: 1, font: { family: 'IBM Plex Mono', size: 10 } },
+            grid: { color: '#2a2a2a' },
+            angleLines: { color: '#1a1a1a' },
+            pointLabels: { color: '#e8e6e3', font: { family: 'IBM Plex Mono', size: 11 } }
+          }
+        },
+        plugins: {
+          legend: { position: 'right', labels: { color: '#e8e6e3', font: { family: 'IBM Plex Mono', size: 10 }, boxWidth: 14 } }
+        }
+      }
+    });
+
+    /* ---- Heatmap ---- */
+    const segs = hm.segments || [];
+    const needs = hm.needs || [];
+    const cells = hm.cells || {};
+    const cellHeat = (ours, best) => {
+      if (ours == null) return 'cell-zero';
+      if (best == null) return 'cell-mid';
+      if (ours >= best) return 'cell-hot';
+      if (best - ours <= 1) return 'cell-warm';
+      return 'cell-cold';
+    };
+    const heatTable = document.getElementById('heatmap');
+    heatTable.replaceChildren();
+    const thead = h('thead', {},
+      h('tr', {},
+        h('th', {}, 'SEGMENT \\ NEED'),
+        ...needs.map(n => h('th', {}, n.short || n.name))
+      )
+    );
+    const tbody = h('tbody', {});
+    for (const seg of segs) {
+      const row = h('tr', {}, h('th', {}, seg.name));
+      for (const need of needs) {
+        const cell = cells[`${seg.id}:${need.id}`];
+        const ours = cell?.our_score;
+        const competitorScores = (cell?.competitors || []).map(c => c.score).filter(s => Number.isFinite(s));
+        const bestComp = competitorScores.length ? Math.max(...competitorScores) : null;
+        const cls = cellHeat(ours, bestComp);
+        row.append(h('td', { class: 'heat-cell ' + cls },
+          ours != null ? String(ours) : '—',
+          h('span', { class: 'ours' }, 'vs best ', h('b', {}, bestComp != null ? String(bestComp) : '—'))
+        ));
+      }
+      tbody.append(row);
+    }
+    heatTable.append(thead, tbody);
+    document.getElementById('heat-meta').textContent = `${segs.length} segments × ${needs.length} needs`;
+
+    /* ---- Cell drilldown ---- */
+    const drillEl = document.getElementById('cell-drilldown');
+    drillEl.replaceChildren();
+    for (const seg of segs) {
+      const items = [];
+      for (const need of needs) {
+        const cell = cells[`${seg.id}:${need.id}`];
+        if (!cell || !cell.competitors?.length) continue;
+        const ours = cell.our_score;
+        for (const co of cell.competitors) {
+          items.push(h('li', {},
+            h('b', {}, `${need.short || need.name} · ${co.name}`),
+            ` — score ${co.score}; us ${ours}. `,
+            co.specialisation_for_cell || ''
+          ));
+        }
+      }
+      if (items.length) {
+        drillEl.append(h('details', { class: 'cell-detail' },
+          h('summary', {}, '▸ ' + seg.name + ' · ' + items.length + ' competitor reads'),
+          h('ul', {}, ...items)
+        ));
+      }
+    }
+
+    /* ---- Attack plans ---- */
+    const segById = Object.fromEntries(segs.map(s => [s.id, s]));
+    const fmtMoney = n => {
+      if (n == null) return '—';
+      if (n >= 1e9) return 'S$' + (n/1e9).toFixed(n >= 1e10 ? 0 : 1) + 'B';
+      if (n >= 1e6) return 'S$' + (n/1e6).toFixed(n >= 1e8 ? 0 : 1) + 'M';
+      if (n >= 1e3) return 'S$' + (n/1e3).toFixed(0) + 'K';
+      return 'S$' + Math.round(n).toLocaleString();
+    };
+    const atkEl = document.getElementById('attacks');
+    mount(atkEl, ...attacks.map(a => h('div', { class: 'attack-card' },
+      h('div', { class: 'rank' }, '#' + (a.rank || '?')),
+      h('div', { class: 'body' },
+        h('h4', {}, a.niche_name || ''),
+        h('div', { class: 'meta' }, (segById[a.whitespace_segment_id]?.name || a.whitespace_segment_id || '—') + ' · ICP: ' + (a.icp || '—')),
+        h('p', {}, h('strong', {}, '▸ Why gap'), a.why_gap || ''),
+        h('p', {}, h('strong', {}, '▸ Why we win'), a.why_we_win || ''),
+        h('p', {}, h('strong', {}, '▸ TAM reasoning'), a.tam_reasoning || '')
+      ),
+      h('div', { class: 'gtm' },
+        h('div', { class: 'tam' }, fmtMoney(a.tam_estimate_sgd) + ' TAM'),
+        h('div', { style: { marginTop: '10px' } },
+          h('span', { class: 'lab' }, 'Channel'), a.gtm?.channel || '—',
+          h('span', { class: 'lab' }, 'Pitch'), a.gtm?.pitch || '—',
+          h('span', { class: 'lab' }, 'Pricing'), a.gtm?.pricing || '—',
+          h('span', { class: 'lab' }, 'Content'), a.gtm?.content || '—'
+        )
+      )
+    )));
+    document.getElementById('atk-meta').textContent = `${attacks.length} ranked attack plans`;
+  </script>
+
+<div class="last-edited-strip" role="status" aria-live="polite">
+  <strong>Page last edited:</strong> <span id="last-edited" data-edited="2026-05-03T22:45:44+08:00">checking…</span>
+</div>
+
+<script>
+(function () {
+  const el = document.getElementById('last-edited');
+  if (!el) return;
+  const iso = el.dataset.edited;
+  if (!iso) { el.textContent = '—'; return; }
+  const d = new Date(iso);
+  const fmt = d.toLocaleDateString('en-SG', { year: 'numeric', month: 'short', day: 'numeric' });
+  const ago = Math.floor((Date.now() - d.getTime()) / 86400000);
+  let suffix;
+  if (ago === 0) suffix = 'today';
+  else if (ago === 1) suffix = 'yesterday';
+  else if (ago < 14) suffix = ago + ' days ago';
+  else if (ago < 60) suffix = Math.floor(ago/7) + ' weeks ago';
+  else suffix = Math.floor(ago/30) + ' months ago';
+  el.textContent = fmt + ' · ' + suffix;
+  if (ago <= 7) el.classList.add('fresh');
+  else if (ago > 14) el.classList.add('stale');
+})();
+</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.106.1/dist/umd/supabase.js" integrity="sha384-8A8NbbMug1jd/CYs7b0nSc6FPM4L9GKg/VzKxg6hst+UgTcWTQr0ry7knxGrSOtT" crossorigin="anonymous"></script>
+  <script src="../assets/kit/js/auth-gate.js"></script>
+</body>
+</html>
